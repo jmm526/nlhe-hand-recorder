@@ -1,4 +1,10 @@
 import { aiClient } from "@/server/clients/openai";
+import {
+  fixActions,
+  generateHandHistoryPrompt,
+  generateStackSizes,
+} from "@/server/helpers";
+import { EPosition, handHistorySchema, IHandHistory } from "@/server/models";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const gptInstructions = `
@@ -32,6 +38,7 @@ const gptInstructions = `
   Q,
   K
   }
+  ECardValue should always be a string.
 
   interface ICard {
   suit: ESuit,
@@ -50,8 +57,8 @@ const gptInstructions = `
   SB = "Small Blind",
   BB = "Big Blind",
   UTG = "Under the Gun",
-  "UTG+1" = "Under the Gun plus One",
-  "UTG+2" = "Under the Gun plus Two",
+  UTG1 = "Under the Gun plus one",
+  UTG2 = "Under the Gun plus two",
   LJ = "Low Jack",
   HJ = "High Jack",
   CO = "Cut Off",
@@ -70,26 +77,15 @@ const gptInstructions = `
 
   The "blinds" key will contain an object that contains two non-optional keys "small_blind" and "big_blind", and optional key "straddle". "small_blind" and "big_blind" are of type number and define the small blind and big blind of the game being played. The "straddle" key is an object with two keys. "value" (type: number0) is the number of dollars that the straddle is for. "position" is the position of the straddle (default to "UTG" if not specified in prompt).
 
-  The "player" key will contain an object with three keys: "hand", and "stacksize", and "position". "hand" will be an array that ALWAYS has a length of two and contain the two ICard objects that represent the two cards in a no limit hold'em poker hand as described in the prompt. The "stacksize" key will contain a number representing the main user's (or "Hero") stack size at the start of the hand. If no effective stack size is defined, default to 100 * <BIG_BLIND_AMOUNT>. "position" is the position of the main user (type: EPosition).
+  The "player" key will contain an object with three keys: "hand", and "stack_size", and "position". "hand" will be an array that ALWAYS has a length of two and contain the two ICard objects that represent the two cards in a no limit hold'em poker hand as described in the prompt. The "stack_size" key will contain a number representing the main user's (or "Hero's") stack size at the start of the hand. If no effective stack size is defined, default to 100 * <blinds.big_blind> . "position" is the position of the main user (type: EPosition).
 
-  The "preflop" key will contain an array of type IAction. For preflop action, every action must be recorded, even if it is not explicitly stated in the prompt. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action "folds", and explicitly create an IAction object for each player. If the prompt is missing actions from players still in the hand, default to FOLD. The "stack_size" key is the stack size at the start of preflop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
+  The "preflop" key will contain an array of type IAction. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of preflop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 
-  The "flop" key will contain an object with the key "actions': an array of type IAction, and key "flop": an array of type ICard that is always exactly length three that represents the three cards on the flop. For flop action, every action must be recorded, even if it is not explicitly stated in the prompt. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action "folds", and explicitly create an IAction object for each player. If the prompt is missing actions from players still in the hand, default to FOLD. The "stack_size" key is the stack size at the start of preflop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
+  The "flop" key will contain an object with the key "actions': an array of type IAction, and key "flop": an array of type ICard that is always exactly length three that represents the three cards on the flop. Each action is in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of flop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 
-  The "turn" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the turn card. For flop action, every action must be recorded, even if it is not explicitly stated in the prompt. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action "folds", and explicitly create an IAction object for each player. If the prompt is missing actions from players still in the hand, default to FOLD. The "stack_size" key is the stack size at the start of preflop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
+  The "turn" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the turn card. Each action is in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of turn action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 
-  The "river" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the river card. For flop action, every action must be recorded, even if it is not explicitly stated in the prompt. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action "folds", and explicitly create an IAction object for each player. If the prompt is missing actions from players still in the hand, default to FOLD. The "stack_size" key is the stack size at the start of preflop action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
-`;
-
-const testHandHistory = `
-  2$ small blind,  5$ big blind. 
-
-  9-max.
-
-  Hero has 1700$ stack.
-
-  EP has a 700$ stack.
-  EP opens to 15, hero calls on button with 7 of hearts, 7 of spades, small blind calls. Flop king eight six rainbow checks through. Turn is 3 brings in a flush draw, ep bets 15, hero raises to 55, big blind folds, ep calls. river offsuit queen check check.
+  The "river" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the river card. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of river action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 `;
 
 export default async function handler(
@@ -99,24 +95,57 @@ export default async function handler(
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  const {
+    smallBlind,
+    bigBlind,
+    playerCount,
+    rawHistory,
+    stackSizes,
+    straddle,
+  } = req.body;
+
+  const fixedStackSizes = generateStackSizes(bigBlind, playerCount, stackSizes);
+
+  const prompt = generateHandHistoryPrompt(
+    smallBlind,
+    bigBlind,
+    playerCount,
+    rawHistory,
+    fixedStackSizes,
+    straddle
+  );
+
   try {
     const aiResponse = await aiClient.chat.completions.create({
       messages: [
         { role: "system", content: gptInstructions },
-        { role: "user", content: testHandHistory },
+        { role: "user", content: prompt },
       ],
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
     });
-    const handHistory = JSON.parse(
-      aiResponse.choices[0].message.content || "{}"
+
+    const validatedHandHistory: IHandHistory = handHistorySchema.parse(
+      JSON.parse(aiResponse.choices[0].message.content || "{}")
     );
-    console.log("handhistory: ", handHistory);
+
+    // Fix Actions
+    // PF
+    const fixedPreflopActions = fixActions(
+      smallBlind,
+      bigBlind,
+      playerCount,
+      validatedHandHistory.preflop,
+      true,
+      fixedStackSizes,
+      straddle
+    );
+
+    res.status(200).json({ handHistory: validatedHandHistory });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 
   res.status(200).json({ message: "Hand history generated" });
-
-  //   const { handHistory } = req.query;
 }

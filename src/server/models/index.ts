@@ -31,6 +31,7 @@ export type ICard = z.infer<typeof cardSchema>;
 
 export enum EAction {
   FOLD = "FOLD",
+  POST = "POST",
   BET = "BET",
   RAISE = "RAISE",
   CALL = "CALL",

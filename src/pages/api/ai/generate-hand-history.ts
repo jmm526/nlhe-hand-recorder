@@ -3,8 +3,10 @@ import {
   fixActions,
   generateHandHistoryPrompt,
   generateStackSizes,
+  positionOrder6max,
+  positionOrder9max,
 } from "@/server/helpers";
-import { EPosition, handHistorySchema, IHandHistory } from "@/server/models";
+import { handHistorySchema, IHandHistory } from "@/server/models";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const gptInstructions = `
@@ -72,7 +74,7 @@ const gptInstructions = `
   stack_size: number
   }
 
-  For 6-max games, the positions are SB, BB, UTG, LJ, HJ, CO, BTN.
+  For 6-max games, the positions are SB, BB, UTG, LJ, HJ, CO, BTN
   For 9-max games, the positions are SB, BB, UTG, UTG+1, UTG+2, LJ, HJ, CO, BTN
 
   The "blinds" key will contain an object that contains two non-optional keys "small_blind" and "big_blind", and optional key "straddle". "small_blind" and "big_blind" are of type number and define the small blind and big blind of the game being played. The "straddle" key is an object with two keys. "value" (type: number0) is the number of dollars that the straddle is for. "position" is the position of the straddle (default to "UTG" if not specified in prompt).
@@ -129,19 +131,61 @@ export default async function handler(
       JSON.parse(aiResponse.choices[0].message.content || "{}")
     );
 
+    console.log("VALIDATED HAND HISTORY>>>", validatedHandHistory);
+
     // Fix Actions
     // PF
-    const fixedPreflopActions = fixActions(
-      smallBlind,
-      bigBlind,
-      playerCount,
-      validatedHandHistory.preflop,
-      true,
-      fixedStackSizes,
-      straddle
+    const { actions: fixedPreflopActions, stackSizes: fixedPreflopStackSizes } =
+      fixActions(
+        validatedHandHistory.blinds.small_blind,
+        validatedHandHistory.blinds.big_blind,
+        playerCount === 9 ? positionOrder9max : positionOrder6max,
+        validatedHandHistory.preflop,
+        fixedStackSizes,
+        true,
+        validatedHandHistory.blinds.straddle
+      );
+
+    const { actions: fixedFlopActions, stackSizes: fixedFlopStackSizes } =
+      fixActions(
+        validatedHandHistory.blinds.small_blind,
+        validatedHandHistory.blinds.big_blind,
+        fixedPreflopStackSizes.map((ss) => ss.position),
+        validatedHandHistory.flop.actions,
+        fixedPreflopStackSizes,
+        false
     );
 
-    res.status(200).json({ handHistory: validatedHandHistory });
+    const { actions: fixedTurnActions, stackSizes: fixedTurnStackSizes } =
+      fixActions(
+        validatedHandHistory.blinds.small_blind,
+        validatedHandHistory.blinds.big_blind,
+        fixedFlopStackSizes.map((ss) => ss.position),
+        validatedHandHistory.turn.actions,
+        fixedFlopStackSizes,
+        false
+    );
+
+    const { actions: fixedRiverActions } = fixActions(
+      validatedHandHistory.blinds.small_blind,
+      validatedHandHistory.blinds.big_blind,
+      fixedTurnStackSizes.map((ss) => ss.position),
+      validatedHandHistory.river.actions,
+      fixedTurnStackSizes,
+      false
+    );
+
+    const fixedHandHistory: IHandHistory = {
+      ...validatedHandHistory,
+      preflop: fixedPreflopActions,
+      flop: { actions: fixedFlopActions, flop: validatedHandHistory.flop.flop },
+      turn: { actions: fixedTurnActions, card: validatedHandHistory.turn.card },
+      river: { actions: fixedRiverActions, card: validatedHandHistory.river.card },
+    };
+
+    console.log("FIXED HAND HISTORY>>>", fixedHandHistory);
+
+    res.status(200).json({ handHistory: fixedHandHistory });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

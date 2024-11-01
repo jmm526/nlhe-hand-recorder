@@ -1,6 +1,6 @@
 import { EAction, EPosition, IAction, IStraddle } from "./models";
 
-const positionOrder9max = [
+export const positionOrder9max = [
   EPosition.SB,
   EPosition.BB,
   EPosition.UTG,
@@ -12,7 +12,7 @@ const positionOrder9max = [
   EPosition.BTN,
 ];
 
-const positionOrder6max = [
+export const positionOrder6max = [
   EPosition.SB,
   EPosition.BB,
   EPosition.UTG,
@@ -42,7 +42,6 @@ export const generateHandHistoryPrompt = (
     });
   }
   retString += rawHistory;
-  console.log(retString);
   return retString;
 };
 
@@ -80,62 +79,148 @@ export const generateStackSizes = (
 export const fixActions = (
   smallBlind: number,
   bigBlind: number,
-  numPlayers: number,
+  currentPlayers: EPosition[], // TODO: get rid of this - we can just use stacksizes and sort based on order arrays at top.
   actions: IAction[],
-  isPreflop: boolean,
   stackSizes: { position: EPosition; stackSize: number }[],
+  isPreflop: boolean,
   straddle?: IStraddle
-) => {
-  if (numPlayers !== 9 && numPlayers !== 6) {
-    throw new Error("Invalid number of players");
-  }
-
-  const getPosition = (posIndex: number) => posIndex % numPlayers;
-
-  const retActions: IAction[] = [];
-  const positionOrder =
-    numPlayers === 9 ? positionOrder9max : positionOrder6max;
+): {
+  actions: IAction[];
+  stackSizes: { position: EPosition; stackSize: number }[];
+} => {
   let posIndex = 0;
+  let currentBetSize = 0;
+  let players = [...currentPlayers];
+  let playersActed: EPosition[] = [];
+  const gptActions: IAction[] = [...actions].filter(
+    (a) => a.action !== EAction.STRADDLE && players.includes(a.position)
+  );
+  let currentAggressor: EPosition | null = null;
+  const stackSizeMap = new Map<EPosition, number>();
+  stackSizes.forEach((ss) => {
+    stackSizeMap.set(ss.position, ss.stackSize);
+  });
+  const retActions: IAction[] = [];
 
-  if (isPreflop) {
-    retActions.push({
-      position: EPosition.SB,
-      action: EAction.BET,
-      amount: smallBlind,
-      stack_size:
-        stackSizes.find(
-          (ss: { position: EPosition; stackSize: number }) =>
-            ss.position === EPosition.SB
-        )?.stackSize || bigBlind * 100,
-    });
-    retActions.push({
-      position: EPosition.BB,
-      action: EAction.RAISE,
-      amount: smallBlind,
-      stack_size:
-        stackSizes.find(
-          (ss: { position: EPosition; stackSize: number }) =>
-            ss.position === EPosition.BB
-        )?.stackSize || bigBlind * 100,
-    });
-    if (straddle) {
-      retActions.push({
-        position: straddle.position,
-        action: EAction.RAISE,
-        amount: straddle.value,
-        stack_size:
-          stackSizes.find(
-            (ss: { position: EPosition; stackSize: number }) =>
-              ss.position === straddle.position
-          )?.stackSize || bigBlind * 100,
-      });
-      posIndex = getPosition(positionOrder.indexOf(straddle.position) + 1);
-    } else {
-      posIndex = getPosition(positionOrder.indexOf(EPosition.UTG));
+  const incrementPosIndex = () => {
+    posIndex = (posIndex + 1) % players.length;
+  };
+  const addAction = (position: EPosition, action: EAction, amount?: number) => {
+    switch (action) {
+      case EAction.CALL:
+      case EAction.CHECK:
+        playersActed.push(position);
+        incrementPosIndex();
+        break;
+      case EAction.POST:
+      case EAction.STRADDLE:
+        if (!amount) {
+          throw new Error("Amount is required for post or straddle");
+        }
+        if (amount <= currentBetSize) {
+          throw new Error("Invalid bet size");
+        }
+        currentAggressor = position;
+        currentBetSize = amount;
+        playersActed = [];
+        incrementPosIndex();
+        break;
+      case EAction.BET:
+      case EAction.RAISE:
+        if (!amount) {
+          throw new Error("Amount is required for bet or raise");
+        }
+        if (amount <= currentBetSize) {
+          throw new Error("Invalid bet size");
+        }
+        currentAggressor = position;
+        currentBetSize = amount;
+        playersActed = [position];
+        incrementPosIndex();
+        break;
+      case EAction.FOLD:
+        players = players.filter((p) => p !== position);
+        posIndex = posIndex % players.length;
+        break;
     }
 
-    console.log(posIndex);
+    stackSizeMap.set(
+      position,
+      (stackSizes.find((ss) => ss.position === position)?.stackSize as number) -
+        (amount || 0)
+    );
+    retActions.push({
+      position,
+      action,
+      amount: amount || 0,
+      stack_size: stackSizeMap.get(position) as number,
+    });
+  };
+
+  // Post blinds + straddle
+  if (isPreflop) {
+    addAction(EPosition.SB, EAction.POST, smallBlind);
+    addAction(EPosition.BB, EAction.POST, bigBlind);
+    if (straddle) {
+      addAction(straddle.position, EAction.STRADDLE, straddle.value);
+      posIndex = players.indexOf(straddle.position);
+      incrementPosIndex();
+    } else {
+      posIndex = players.indexOf(EPosition.UTG);
+    }
   }
 
-  while (positionOrder.length > 1) {}
+  while (playersActed.length < players.length) {
+    // Prune out fake actions for already folded players
+    while (
+      gptActions.length &&
+      !players.find((p) => p === gptActions[0].position)
+    ) {
+      gptActions.shift();
+    }
+    const currentPlayer = players[posIndex];
+    const nextGptAction = gptActions[0];
+    if (currentAggressor && currentPlayer == currentAggressor) {
+      // Account for straddle case
+      if (
+        straddle &&
+        currentPlayer == straddle.position &&
+        currentBetSize == straddle.value
+      ) {
+        if (
+          !nextGptAction ||
+          nextGptAction.action == EAction.FOLD ||
+          nextGptAction.action == EAction.CHECK
+        ) {
+          addAction(currentPlayer, nextGptAction.action);
+          break;
+        } else if (nextGptAction.position == currentPlayer) {
+          addAction(currentPlayer, nextGptAction.action, nextGptAction.amount);
+          gptActions.shift();
+        } else {
+          throw new Error("Invalid action");
+        }
+      } else {
+        // End of round - we have made it back to the aggressor and everyone has either called or folded
+        break;
+      }
+    } else {
+      if (nextGptAction && nextGptAction.position == currentPlayer) {
+        addAction(currentPlayer, nextGptAction.action, nextGptAction.amount);
+        gptActions.shift();
+      } else if (currentBetSize) {
+        addAction(currentPlayer, EAction.FOLD);
+      } else {
+        addAction(currentPlayer, EAction.CHECK);
+      }
+    }
+  }
+
+  return {
+    actions: retActions,
+    stackSizes: players.map((p) => ({
+      position: p,
+      stackSize: stackSizeMap.get(p) as number,
+    })),
+  };
 };

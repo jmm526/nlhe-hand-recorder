@@ -1,14 +1,16 @@
 import { positionOrder6max } from "@/server/helpers";
 import { positionOrder9max } from "@/server/helpers";
-import { Col, InputNumber, Row, Select, Typography } from "antd";
+import { Button, Col, InputNumber, Row, Select, Typography } from "antd";
 import { IStackSizeState } from "./StackSizesContainer";
 import { EPosition } from "@/server/models";
+import { DeleteOutlined } from "@ant-design/icons";
 
 interface Props {
   index: number;
   playerCount: number;
   stackSize: IStackSizeState;
   handleStackSizeChange: (index: number, newStackSize: IStackSizeState) => void;
+  handleRemoveStackSize: (index: number) => void;
 }
 
 const StackSize = ({
@@ -16,9 +18,11 @@ const StackSize = ({
   playerCount,
   stackSize,
   handleStackSizeChange,
+  handleRemoveStackSize,
 }: Props) => {
   const positionChoices =
     playerCount === 9 ? positionOrder9max : positionOrder6max;
+  const isHero = stackSize.name === "Hero";
 
   const handleChange = (
     key: "name" | "position" | "stackSize",
@@ -49,17 +53,34 @@ const StackSize = ({
             />
           </Row>
         </Col>
-        <Col span={8}>
+        <Col span={6}>
           <Select
             value={stackSize.position}
-            onChange={(value) => handleChange("position", value ?? EPosition.UTG)}
-            style={{ minWidth: "25vw" }}
+            onChange={(value) =>
+              handleChange("position", value ?? EPosition.UTG)
+            }
+            style={{ minWidth: "20vw" }}
             options={positionChoices.map((position) => ({
               label: position,
               value: position,
             }))}
           />
         </Col>
+          <Col span={2}>
+            <Button
+            onClick={() => handleRemoveStackSize(index)}
+            disabled={isHero}
+            style={{
+              backgroundColor: isHero ? "#D3D3D3" : "#e74d4d",
+                color: "var(--button-primary-foreground)",
+                border: "none",
+                fontWeight: "bold",
+                padding: "10px",
+              }}
+            >
+              <DeleteOutlined />
+            </Button>
+          </Col>
       </Row>
     </>
   );

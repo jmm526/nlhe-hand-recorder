@@ -1,10 +1,12 @@
-import { Col, Row, Typography } from "antd";
+import { Button, Col, Row, Space, Typography } from "antd";
 import StackSize from "./StackSize";
 import { EPosition } from "@/server/models";
 import { useState } from "react";
 
 interface Props {
   playerCount: number;
+  stackSizes: IStackSizeState[];
+  handleStackSizesChange: (newStackSizes: IStackSizeState[]) => void;
 }
 
 export interface IStackSizeState {
@@ -13,18 +15,34 @@ export interface IStackSizeState {
   stackSize?: number;
 }
 
-const StackSizesContainer = ({ playerCount }: Props) => {
-  const [stackSizes, setStackSizes] = useState<IStackSizeState[]>([
-    { name: "Hero" },
-  ]);
-
+const StackSizesContainer = ({
+  playerCount,
+  stackSizes,
+  handleStackSizesChange,
+}: Props) => {
   const handleStackSizeChange = (
     index: number,
     newStackSize: IStackSizeState
   ) => {
     const newStackSizes = [...stackSizes];
     newStackSizes[index] = newStackSize;
-    setStackSizes(newStackSizes);
+    handleStackSizesChange(newStackSizes);
+  };
+
+  const handleNewStackSize = () => {
+    handleStackSizesChange([...stackSizes, { name: `V${stackSizes.length}` }]);
+  };
+
+  const handleRemoveStackSize = (index: number) => {
+    const newStackSizes = [...stackSizes];
+    newStackSizes.splice(index, 1);
+    const renamedStackSizes = newStackSizes.map((stackSize, index) => {
+      if (stackSize.name !== "Hero") {
+        return { ...stackSize, name: `V${index}` };
+      }
+      return stackSize;
+    });
+    handleStackSizesChange(renamedStackSizes);
   };
 
   return (
@@ -64,15 +82,32 @@ const StackSizesContainer = ({ playerCount }: Props) => {
           </Typography.Text>
         </Col>
       </Row>
-      {stackSizes.map((stackSize, index) => (
-        <StackSize
-          key={index}
-          index={index}
-          playerCount={playerCount}
-          stackSize={stackSize}
-          handleStackSizeChange={handleStackSizeChange}
-        />
-      ))}
+      <Row style={{ marginBottom: "1vh" }}>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          {stackSizes.map((stackSize, index) => (
+            <StackSize
+              key={index}
+              index={index}
+              playerCount={playerCount}
+              stackSize={stackSize}
+              handleStackSizeChange={handleStackSizeChange}
+              handleRemoveStackSize={handleRemoveStackSize}
+            />
+          ))}
+        </Space>
+      </Row>
+      <Button
+        style={{
+          width: "100%",
+          marginBottom: "1vh",
+          backgroundColor: "var(--button-primary)",
+          color: "var(--button-primary-foreground)",
+          fontWeight: "bold",
+        }}
+        onClick={handleNewStackSize}
+      >
+        +
+      </Button>
     </>
   );
 };

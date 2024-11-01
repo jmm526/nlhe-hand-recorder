@@ -14,10 +14,12 @@ const fixTranscript = (transcript: string) => {
 };
 
 interface Props {
-  onSubmit: (transcript: string) => void;
+  text: string;
+  handleSubmit: () => void;
+  handleTextChange: (text: string) => void;
 }
 
-const Dictaphone = ({ onSubmit }: Props) => {
+const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
   const {
     transcript,
     listening,
@@ -25,11 +27,9 @@ const Dictaphone = ({ onSubmit }: Props) => {
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
 
-  const [shownTranscript, setShownTranscript] = useState("");
-
   useEffect(() => {
     if (listening) {
-      setShownTranscript(fixTranscript(transcript));
+      handleTextChange(fixTranscript(transcript));
     }
   }, [transcript]);
 
@@ -42,67 +42,72 @@ const Dictaphone = ({ onSubmit }: Props) => {
       SpeechRecognition.stopListening();
     } else {
       resetTranscript();
-      setShownTranscript("");
+      handleTextChange("");
       SpeechRecognition.startListening({ continuous: true });
     }
   };
 
   const resetTextBox = () => {
     resetTranscript();
-    setShownTranscript("");
-  };
-
-  const handleSubmit = () => {
-    onSubmit(shownTranscript);
+    handleTextChange("");
   };
 
   return (
     <>
       <Space direction="vertical" style={{ width: "100%" }}>
-      <Row justify="center">
-        <Button
-          onClick={handleStartStopListening}
-          shape="circle"
-          variant="solid"
-          style={{
-            border: "5px solid var(--foreground)",
-            backgroundColor: "#e74d4d",
-            width: "40vw",
-            height: "40vw",
-          }}
-        >
-          {listening && (
-            <div
-              style={{
-                height: "35%",
-                width: "35%",
-                backgroundColor: "var(--foreground)",
-                borderRadius: "10%",
-              }}
-            ></div>
-          )}
-        </Button>
-      </Row>
-      <Row justify="center">
-        <TextArea
-          value={shownTranscript}
-          autoSize={{ maxRows: 8 }}
-          onChange={(e) => setShownTranscript(e.target.value)}
-          style={{
-            backgroundColor: "var(--background)",
-            color: "var(--foreground)",
-          }}
-        />
-      </Row>
-      <Row justify="end">
-        <Space>
-          <Button onClick={resetTextBox}>Clear</Button>
-          <Button type="primary" onClick={handleSubmit}>
-            Submit
+        <Row justify="center">
+          <Button
+            onClick={handleStartStopListening}
+            shape="circle"
+            variant="solid"
+            style={{
+              border: "5px solid var(--foreground)",
+              backgroundColor: "#e74d4d",
+              width: "40vw",
+              height: "40vw",
+            }}
+          >
+            {listening && (
+              <div
+                style={{
+                  height: "35%",
+                  width: "35%",
+                  backgroundColor: "var(--foreground)",
+                  borderRadius: "10%",
+                }}
+              ></div>
+            )}
           </Button>
-        </Space>
-      </Row>
-    </Space>
+        </Row>
+        <Row justify="center">
+          <TextArea
+            value={text}
+            autoSize={{ minRows: 3, maxRows: 8 }}
+            onChange={(e) => handleTextChange(e.target.value)}
+            style={{
+              backgroundColor: "var(--background)",
+              color: "var(--foreground)",
+            }}
+          />
+        </Row>
+        <Row justify="end">
+          <Space>
+            <Button onClick={resetTextBox} style={{ fontWeight: "bold" }}>
+              Clear
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              style={{
+                backgroundColor: "var(--button-primary)",
+                color: "var(--button-primary-foreground)",
+                fontWeight: "bold",
+              }}
+            >
+              Submit
+            </Button>
+          </Space>
+        </Row>
+      </Space>
     </>
   );
 };

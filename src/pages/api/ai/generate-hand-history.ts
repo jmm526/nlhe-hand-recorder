@@ -183,8 +183,6 @@ export default async function handler(
       river: { actions: fixedRiverActions, card: validatedHandHistory.river.card },
     };
 
-    console.log("FIXED HAND HISTORY>>>", fixedHandHistory);
-
     res.status(200).json({ handHistory: fixedHandHistory });
   } catch (error) {
     console.error(error);

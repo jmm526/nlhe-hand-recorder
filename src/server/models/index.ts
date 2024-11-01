@@ -51,6 +51,13 @@ export enum EPosition {
   BTN = "BTN",
 }
 
+export const stackSizeSchema = z.object({
+  name: z.string().optional(),
+  position: z.nativeEnum(EPosition),
+  stackSize: z.number(),
+});
+export type IStackSize = z.infer<typeof stackSizeSchema>;
+
 export const actionSchema = z.object({
   position: z.nativeEnum(EPosition),
   action: z.nativeEnum(EAction),

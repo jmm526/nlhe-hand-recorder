@@ -93,6 +93,7 @@ const gptInstructions = `
 `;
 
 // TODO: Add a showdown key that contains all of the hands that are shown down.
+// TODO: Make discrete values in prompt standardized in json so it's easier for the AI to parse.
 
 export default async function handler(
   req: NextApiRequest,
@@ -120,6 +121,8 @@ export default async function handler(
     fixedStackSizes,
     straddle
   );
+
+  console.log("PROMPT>>>", prompt);
 
   try {
     const aiResponse = await aiClient.chat.completions.create({

@@ -7,6 +7,7 @@ import {
   IHandHistory,
 } from "@/server/models";
 import { Modal } from "antd";
+import CopyToClipboardButton from "../general/CopyToClipboardButton";
 
 interface Props {
   responseData: IHandHistory | null;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const convertActionToText = (action: IAction) => {
-  let retString = `${action.position}: ${action.action}`;
+  let retString = `${action.position} (${action.stack_size}): ${action.action}`;
   if (action.action !== EAction.FOLD && action.action !== EAction.CHECK) {
     retString += ` ${!!action.amount && `(${action.amount})`}`;
   }
@@ -56,9 +57,7 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
   retString += `Blinds: ${blinds.small_blind} / ${blinds.big_blind}\n`;
   retString += `Hero: [${player.hand[0].value}${convertSuitToShorthand(
     player.hand[0].suit
-  )}, ${player.hand[1].value}${convertSuitToShorthand(player.hand[1].suit)}] (${
-    player.stack_size
-  })\n`;
+  )}, ${player.hand[1].value}${convertSuitToShorthand(player.hand[1].suit)}]\n`;
 
   const { retString: preflopString, finalPotSize: flopPotSize } =
     generateStreetText("Preflop", 0, preflop);
@@ -84,15 +83,16 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
 };
 
 const HandHistoryModal = ({ responseData, onClose }: Props) => {
+  const handHistoryText = convertHandHistoryToText(responseData);
   return (
     <>
       <Modal
         open={!!responseData}
         title="Hand History"
-        footer={null}
+        footer={<CopyToClipboardButton text={handHistoryText} />}
         onCancel={onClose}
       >
-        <pre>{convertHandHistoryToText(responseData)}</pre>
+        <pre>{handHistoryText}</pre>
       </Modal>
     </>
   );

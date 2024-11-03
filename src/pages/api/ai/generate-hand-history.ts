@@ -14,6 +14,8 @@ const gptInstructions = `
 
   If the prompt refers to "EP" or "Early Position", default to to UTG, UTG+1, or UTG+2 in that order assuming there is no straddle on that position. If the prompt refers to "MP" or "Middle Position", default to LJ, HJ in that order assuming there is no straddle on that position. If the prompt refers to "LP", or "Late Position", default to CO, BTN in that order assuming there is no straddle on that position. 
 
+  If the prompt refers to a "limp", this should be treated as a call of the big blind or straddle.
+
   The JSON output will have the following keys: "blinds", "player", "preflop", "flop", "turn", "river".
 
   There are a couple of data structures that we will be using to normalize the response:
@@ -89,6 +91,8 @@ const gptInstructions = `
 
   The "river" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the river card. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of river action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 `;
+
+// TODO: Add a showdown key that contains all of the hands that are shown down.
 
 export default async function handler(
   req: NextApiRequest,

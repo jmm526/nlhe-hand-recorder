@@ -3,7 +3,9 @@ import Dictaphone from "../Dictaphone";
 import ManualInputs from "./ManualInputs";
 import { IStackSizeState } from "./StackSizesContainer";
 import { useState } from "react";
-import { EPosition } from "@/server/models";
+import axios from "axios";
+import { IHandHistory } from "@/server/models";
+import HandHistoryModal from "../HandHistoryModal";
 
 export interface GenerateHandInfoState {
   smallBlind?: number;
@@ -22,12 +24,27 @@ const RecordPageContainer = () => {
     rawHistory: "",
   });
 
+  const [responseData, setResponseData] = useState<IHandHistory | null>(null);
+
   const handleInfoChange = (key: keyof GenerateHandInfoState, value: any) => {
     setHandInfo({ ...handInfo, [key]: value });
   };
 
-  const handleSubmit = () => {
-    console.log(handInfo);
+  const handleSubmit = async () => {
+    try {
+      console.log("SUBMITTING>>>", handInfo);
+      const response = await axios.post("/api/ai/generate-hand-history", {
+        ...handInfo,
+      });
+      setResponseData(response.data.handHistory);
+    } catch (error) {
+      // TODO: Alert user when there is an error.
+      console.error(error);
+    }
+  };
+
+  const handleCloseHandHistoryModal = () => {
+    setResponseData(null);
   };
 
   return (
@@ -48,6 +65,10 @@ const RecordPageContainer = () => {
           handleSubmit={handleSubmit}
         />
       </Space>
+      <HandHistoryModal
+        responseData={responseData}
+        onClose={handleCloseHandHistoryModal}
+      />
     </>
   );
 };

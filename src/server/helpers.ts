@@ -1,4 +1,4 @@
-import { EAction, EPosition, IAction, IStraddle } from "./models";
+import { EAction, EPosition, ESuit, IAction, IStraddle } from "./models";
 
 export const positionOrder9max = [
   EPosition.SB,
@@ -198,6 +198,7 @@ export const fixActions = (
           addAction(currentPlayer, nextGptAction.action, nextGptAction.amount);
           gptActions.shift();
         } else {
+          console.log(">>>", nextGptAction);
           throw new Error("Invalid action");
         }
       } else {
@@ -223,4 +224,19 @@ export const fixActions = (
       stackSize: stackSizeMap.get(p) as number,
     })),
   };
+};
+
+export const convertSuitToShorthand = (suit: ESuit) => {
+  switch (suit) {
+    case ESuit.CLUB:
+      return "c";
+    case ESuit.DIAMOND:
+      return "d";
+    case ESuit.HEART:
+      return "h";
+    case ESuit.SPADE:
+      return "s";
+    default:
+      throw new Error("Invalid suit");
+  }
 };

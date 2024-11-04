@@ -49,7 +49,7 @@ const RecordPageContainer = () => {
 
   return (
     <>
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Space direction="vertical" size="small" style={{ width: "100%" }}>
         <ManualInputs
           smallBlind={handInfo.smallBlind}
           bigBlind={handInfo.bigBlind}

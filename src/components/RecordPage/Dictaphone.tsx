@@ -3,6 +3,7 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { Input, Button, Row, Space } from "antd";
+import { FaMicrophone } from "react-icons/fa";
 
 const { TextArea } = Input;
 
@@ -67,7 +68,7 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
               height: "40vw",
             }}
           >
-            {listening && (
+            {listening ? (
               <div
                 style={{
                   height: "35%",
@@ -76,6 +77,8 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
                   borderRadius: "10%",
                 }}
               ></div>
+            ) : (
+              <FaMicrophone style={{ height: "40%", width: "40%", color: "var(--foreground)" }} />
             )}
           </Button>
         </Row>

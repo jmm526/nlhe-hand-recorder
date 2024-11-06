@@ -5,7 +5,7 @@ import {
   positionOrder6max,
   positionOrder9max,
 } from "@/server/helpers";
-import { handHistorySchema, IHandHistory } from "@/server/models";
+import { handHistorySchema, IAction, IHandHistory } from "@/server/models";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const gptInstructions = `
@@ -89,6 +89,8 @@ const gptInstructions = `
   stack_size: number
   }
 
+  If IAction.action is "FOLD" or "CHECK", default IAction.amount to 0.
+
   For 6-max games, the positions are SB, BB, UTG, LJ, HJ, CO, BTN
   For 9-max games, the positions are SB, BB, UTG, UTG+1, UTG+2, LJ, HJ, CO, BTN
 
@@ -117,14 +119,8 @@ export default async function handler(
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const {
-    smallBlind,
-    bigBlind,
-    playerCount,
-    rawHistory,
-    stackSizes,
-    straddle,
-  } = req.body;
+  const { smallBlind, bigBlind, playerCount, rawHistory, stackSizes } =
+    req.body;
 
   const fixedStackSizes = generateStackSizes(bigBlind, playerCount, stackSizes);
 
@@ -145,6 +141,8 @@ export default async function handler(
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
     });
+
+    console.log(aiResponse.choices[0].message.content);
 
     const validatedHandHistory: IHandHistory = handHistorySchema.parse(
       JSON.parse(aiResponse.choices[0].message.content || "{}")
@@ -171,33 +169,50 @@ export default async function handler(
         validatedHandHistory.flop.actions,
         fixedPreflopStackSizes,
         false
-    );
+      );
 
-    const { actions: fixedTurnActions, stackSizes: fixedTurnStackSizes } =
-      fixActions(
-        validatedHandHistory.blinds.small_blind,
-        validatedHandHistory.blinds.big_blind,
-        fixedFlopStackSizes.map((ss) => ss.position),
-        validatedHandHistory.turn.actions,
-        fixedFlopStackSizes,
-        false
-    );
+    let fixedTurnActions: IAction[] = [];
+    let fixedRiverActions: IAction[] = [];
+    if (validatedHandHistory.turn) {
+      const { actions: tempFixedTurnActions, stackSizes: fixedTurnStackSizes } =
+        fixActions(
+          validatedHandHistory.blinds.small_blind,
+          validatedHandHistory.blinds.big_blind,
+          fixedFlopStackSizes.map((ss) => ss.position),
+          validatedHandHistory.turn.actions,
+          fixedFlopStackSizes,
+          false
+        );
+      fixedTurnActions = tempFixedTurnActions;
 
-    const { actions: fixedRiverActions } = fixActions(
-      validatedHandHistory.blinds.small_blind,
-      validatedHandHistory.blinds.big_blind,
-      fixedTurnStackSizes.map((ss) => ss.position),
-      validatedHandHistory.river.actions,
-      fixedTurnStackSizes,
-      false
-    );
+      if (validatedHandHistory.river) {
+        const { actions: tempFixedRiverActions } = fixActions(
+          validatedHandHistory.blinds.small_blind,
+          validatedHandHistory.blinds.big_blind,
+          fixedTurnStackSizes.map((ss) => ss.position),
+          validatedHandHistory.river.actions,
+          fixedTurnStackSizes,
+          false
+        );
+        fixedRiverActions = tempFixedRiverActions;
+      }
+    }
 
     const fixedHandHistory: IHandHistory = {
       ...validatedHandHistory,
       preflop: fixedPreflopActions,
-      flop: { actions: fixedFlopActions, flop: validatedHandHistory.flop.flop },
-      turn: { actions: fixedTurnActions, card: validatedHandHistory.turn.card },
-      river: { actions: fixedRiverActions, card: validatedHandHistory.river.card },
+      flop: {
+        actions: fixedFlopActions,
+        flop: validatedHandHistory.flop.flop,
+      },
+      turn: {
+        actions: fixedTurnActions,
+        card: validatedHandHistory?.turn?.card || null,
+      },
+      river: {
+        actions: fixedRiverActions,
+        card: validatedHandHistory?.river?.card || null,
+      },
     };
 
     res.status(200).json({ handHistory: fixedHandHistory });

@@ -7,6 +7,7 @@ import { useTransition, animated, useIsomorphicLayoutEffect } from "react-spring
 import localFont from "next/font/local";
 import { Segmented } from "antd";
 import styles from "@/styles/Home.module.css";
+import { HandHistoryProvider } from "@/context/HandHistoryContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -60,11 +61,13 @@ export default function App({ Component, pageProps }: AppProps) {
           value={pathname === "/record" ? "Record" : "Replay"}
           style={{ width: "100%", marginBottom: "20px" }}
         />
-        {transitions((style, item) => (
+        <HandHistoryProvider>
+          {transitions((style, item) => (
             <animated.div style={{ ...style, width: "100%" }}>
               {item}
             </animated.div>
           ))}
+        </HandHistoryProvider>
       </main>
     </div>
   );

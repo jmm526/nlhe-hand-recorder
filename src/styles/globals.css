@@ -1,6 +1,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-heart: #C41E3A;
+  --card-diamond: #0047AB;
+  --card-club: #228B22;
+  --card-spade: #36454F;
 }
 
 @media (prefers-color-scheme: dark) {

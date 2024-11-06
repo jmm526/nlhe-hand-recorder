@@ -67,17 +67,21 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
     generateStreetText("Flop", flopPotSize, flop.actions, flop.flop);
   retString += flopString;
 
-  const { retString: turnString, finalPotSize: riverPotSize } =
-    generateStreetText("Turn", turnPotSize, turn.actions, [turn.card]);
-  retString += turnString;
+  if (turn.card) {
+    const { retString: turnString, finalPotSize: riverPotSize } =
+      generateStreetText("Turn", turnPotSize, turn.actions, [turn.card]);
+    retString += turnString;
 
-  const { retString: riverString } = generateStreetText(
-    "River",
-    riverPotSize,
-    river.actions,
-    [river.card]
-  );
-  retString += riverString;
+    if (river.card) {
+      const { retString: riverString } = generateStreetText(
+        "River",
+        riverPotSize,
+        river.actions,
+        [river.card]
+      );
+      retString += riverString;
+    }
+  }
 
   return retString;
 };

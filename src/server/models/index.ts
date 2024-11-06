@@ -61,7 +61,7 @@ export type IStackSize = z.infer<typeof stackSizeSchema>;
 export const actionSchema = z.object({
   position: z.nativeEnum(EPosition),
   action: z.nativeEnum(EAction),
-  amount: z.number(),
+  amount: z.number().optional(),
   stack_size: z.number(),
 });
 export type IAction = z.infer<typeof actionSchema>;
@@ -89,13 +89,13 @@ export const handHistorySchema = z.object({
     actions: z.array(actionSchema),
   }),
   turn: z.object({
-    card: cardSchema,
+    card: cardSchema.nullable(),
     actions: z.array(actionSchema),
-  }),
+  }).optional(),
   river: z.object({
-    card: cardSchema,
+    card: cardSchema.nullable(),
     actions: z.array(actionSchema),
-  }),
+  }).optional(),
   showdown: z.array(
     z.object({
       position: z.nativeEnum(EPosition),

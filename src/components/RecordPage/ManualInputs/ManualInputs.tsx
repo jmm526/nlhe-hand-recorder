@@ -1,7 +1,7 @@
 import { Col, InputNumber, Row, Select, Typography } from "antd";
 import { useState } from "react";
 import StackSizesContainer, { IStackSizeState } from "./StackSizesContainer";
-import { GenerateHandInfoState } from "./RecordPageContainer";
+import { GenerateHandInfoState } from "../RecordPageContainer";
 
 interface Props {
   smallBlind?: number;

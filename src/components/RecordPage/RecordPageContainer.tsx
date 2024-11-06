@@ -1,11 +1,12 @@
 import { Space, message } from "antd";
-import Dictaphone from "../Dictaphone";
-import ManualInputs from "./ManualInputs";
-import { IStackSizeState } from "./StackSizesContainer";
-import { useState } from "react";
+import Dictaphone from "./Dictaphone";
+import ManualInputs from "./ManualInputs/ManualInputs";
+import { IStackSizeState } from "./ManualInputs/StackSizesContainer";
+import { useContext, useState } from "react";
 import axios from "axios";
 import { IHandHistory } from "@/server/models";
-import HandHistoryModal from "../HandHistoryModal";
+import HandHistoryModal from "./HandHistoryModal";
+import { HandHistoryContext } from "@/context/HandHistoryContext";
 
 export interface GenerateHandInfoState {
   smallBlind?: number;
@@ -24,6 +25,8 @@ const RecordPageContainer = () => {
     rawHistory: "",
   });
 
+  const { setHandHistory } = useContext(HandHistoryContext);
+
   const [responseData, setResponseData] = useState<IHandHistory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -39,7 +42,7 @@ const RecordPageContainer = () => {
         ...handInfo,
       });
       setIsLoading(false);
-      console.log("RESPONSE>>>", response.data.handHistory);
+      setHandHistory(response.data.handHistory);
       setResponseData(response.data.handHistory);
     } catch (error) {
       setIsLoading(false);

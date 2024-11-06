@@ -1,7 +1,6 @@
 import { aiClient } from "@/server/clients/openai";
 import {
   fixActions,
-  generateHandHistoryPrompt,
   generateStackSizes,
   positionOrder6max,
   positionOrder9max,
@@ -16,7 +15,21 @@ const gptInstructions = `
 
   If the prompt refers to a "limp", this should be treated as a call of the big blind or straddle.
 
-  The JSON output will have the following keys: "blinds", "player", "preflop", "flop", "turn", "river".
+  The prompt will always include the following information in JSON format:
+
+  interface IGptPromptInfo {
+  small_blind: number,
+  big_blind: number,
+  player_count: number,
+  stack_sizes: {
+    name: string,
+    position: EPosition,
+    stack_size: number
+  }[],
+  rawHistory: string
+  }
+
+  The JSON output will have the following keys: "blinds", "player", "preflop", "flop", "turn", "river", "showdown".
 
   There are a couple of data structures that we will be using to normalize the response:
 
@@ -90,6 +103,8 @@ const gptInstructions = `
   The "turn" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the turn card. Each action is in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of turn action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
 
   The "river" key will contain an object with the key "actions': an array of type IAction, and key "card": type ICard that represents the river card. They are in the order that the actions occur. If the prompt says that someone is "in the straddle" or "straddling", refer to them by their position, NOT by straddle. If the prompt refers to "Hero" or "Villain", refer to them by their position. If the prompt says folds to, assume that all positions before that position have taken the action “FOLD”. The "stack_size" key is the stack size at the start of river action. If no stack size is specified for a position, default the stack size to 100*<blinds.big_blind>.
+
+  The "showdown" key will contain an array of objects with the keys "position" and "hand". "position" is the position of the player who is shown down. "hand" is an array of type ICard that is always exactly length two that represents the two cards in a no limit hold'em poker hand as described in the prompt. If no hand is specified for a position, omit the "showdown.hand" key.
 `;
 
 // TODO: Add a showdown key that contains all of the hands that are shown down.
@@ -113,22 +128,19 @@ export default async function handler(
 
   const fixedStackSizes = generateStackSizes(bigBlind, playerCount, stackSizes);
 
-  const prompt = generateHandHistoryPrompt(
-    smallBlind,
-    bigBlind,
-    playerCount,
-    rawHistory,
-    fixedStackSizes,
-    straddle
-  );
-
-  console.log("PROMPT>>>", prompt);
+  const promptInfo = {
+    small_blind: smallBlind,
+    big_blind: bigBlind,
+    player_count: playerCount,
+    stack_sizes: fixedStackSizes,
+    raw_history: rawHistory,
+  };
 
   try {
     const aiResponse = await aiClient.chat.completions.create({
       messages: [
         { role: "system", content: gptInstructions },
-        { role: "user", content: prompt },
+        { role: "user", content: JSON.stringify(promptInfo) },
       ],
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
@@ -137,8 +149,6 @@ export default async function handler(
     const validatedHandHistory: IHandHistory = handHistorySchema.parse(
       JSON.parse(aiResponse.choices[0].message.content || "{}")
     );
-
-    console.log("VALIDATED HAND HISTORY>>>", validatedHandHistory);
 
     // Fix Actions
     // PF

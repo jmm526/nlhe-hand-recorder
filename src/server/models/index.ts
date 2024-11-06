@@ -96,5 +96,20 @@ export const handHistorySchema = z.object({
     card: cardSchema,
     actions: z.array(actionSchema),
   }),
+  showdown: z.array(
+    z.object({
+      position: z.nativeEnum(EPosition),
+      hand: z.array(cardSchema).length(2).optional(),
+    })
+  ),
 });
 export type IHandHistory = z.infer<typeof handHistorySchema>;
+
+export const gptPromptInfoSchema = z.object({
+  small_blind: z.number(),
+  big_blind: z.number(),
+  player_count: z.number(),
+  stack_sizes: z.array(stackSizeSchema),
+  raw_history: z.string(),
+});
+export type IGptPromptInfo = z.infer<typeof gptPromptInfoSchema>;

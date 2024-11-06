@@ -1,4 +1,4 @@
-import { Space } from "antd";
+import { Space, message } from "antd";
 import Dictaphone from "../Dictaphone";
 import ManualInputs from "./ManualInputs";
 import { IStackSizeState } from "./StackSizesContainer";
@@ -25,6 +25,8 @@ const RecordPageContainer = () => {
   });
 
   const [responseData, setResponseData] = useState<IHandHistory | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleInfoChange = (key: keyof GenerateHandInfoState, value: any) => {
     setHandInfo({ ...handInfo, [key]: value });
@@ -32,13 +34,16 @@ const RecordPageContainer = () => {
 
   const handleSubmit = async () => {
     try {
-      console.log("SUBMITTING>>>", handInfo);
+      setIsLoading(true);
       const response = await axios.post("/api/ai/generate-hand-history", {
         ...handInfo,
       });
+      setIsLoading(false);
+      console.log("RESPONSE>>>", response.data.handHistory);
       setResponseData(response.data.handHistory);
     } catch (error) {
-      // TODO: Alert user when there is an error.
+      setIsLoading(false);
+      messageApi.error("Error generating hand history.");
       console.error(error);
     }
   };
@@ -49,6 +54,7 @@ const RecordPageContainer = () => {
 
   return (
     <>
+      {contextHolder}
       <Space direction="vertical" size="small" style={{ width: "100%" }}>
         <ManualInputs
           smallBlind={handInfo.smallBlind}
@@ -63,6 +69,7 @@ const RecordPageContainer = () => {
             handleInfoChange("rawHistory", text);
           }}
           handleSubmit={handleSubmit}
+          isLoading={isLoading}
         />
       </Space>
       <HandHistoryModal

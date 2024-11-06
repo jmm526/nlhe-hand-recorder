@@ -6,6 +6,25 @@ import { Input, Button, Row, Space } from "antd";
 import { FaMicrophone } from "react-icons/fa";
 import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
 import useWindowDimensions from "../general/useWindowDimensions";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const { TextArea } = Input;
 
@@ -20,11 +39,11 @@ interface Props {
   text: string;
   handleSubmit: () => void;
   handleTextChange: (text: string) => void;
+  isLoading: boolean;
 }
 
-const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
+const Dictaphone = ({ text, handleSubmit, handleTextChange, isLoading }: Props) => {
   const { width } = useWindowDimensions();
-  console.log("WIDTH>>>", width);
   const {
     transcript,
     listening,
@@ -32,16 +51,58 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
   const recorderControls = useVoiceVisualizer();
+  
   // TODO: Add realtime circular visualizer using audioData.
   const { stopRecording, isRecordingInProgress, startRecording, audioData } =
     recorderControls;
 
-  console.log(
-    "AUDIO DATA>>>",
-    Math.min(...audioData),
-    Math.max(...audioData),
-    audioData.reduce((acc, curr) => acc + curr, 0) / audioData.length
-  );
+  const formatAudioData = (intArray: Uint8Array) => {
+    const data = Array.from(intArray);
+    const formattedData = [];
+    const labels = [];
+    if (!data.length) {
+      for (let i = 0; i < 128; i++) {
+        labels.push(i);
+        formattedData.push(0);
+      }
+    } else {
+      for (let i = 0; i < data.length; i += 8) {
+        const avg =
+          data.slice(i, i + 8).reduce((acc, curr) => acc + curr, 0) / 8;
+        labels.push(i);
+        formattedData.push(avg - 127);
+      }
+    }
+    const myData = {
+      labels,
+      datasets: [
+        {
+          data: formattedData,
+          backgroundColor: "#ffffff",
+          borderColor: "#ffffff",
+        },
+      ],
+    };
+    return myData;
+  };
+
+  const chartOptions = {
+    scales: {
+      x: {
+        display: false,
+      },
+      y: {
+        min: -30,
+        max: 30,
+        display: false,
+      },
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
 
   useEffect(() => {
     if (listening) {
@@ -54,7 +115,6 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
   }
 
   const handleStartStopListening = () => {
-    console.log("IS RECORDING>>>", isRecordingInProgress);
     if (listening) {
       if (isRecordingInProgress) {
         stopRecording();
@@ -87,15 +147,16 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
                 right: "0",
                 marginInline: "auto",
                 width: "fit-content",
+                height: width ? width * 0.4 : "0",
               }}
             >
-              <VoiceVisualizer
-                controls={recorderControls}
-                isControlPanelShown={false}
-                height={width ? width * 0.4 : "0"}
-                width={width ? width * 0.8 : "0"}
-                onlyRecording={true}
-              />
+              {listening && (
+                <Bar
+                  data={formatAudioData(audioData)}
+                  options={chartOptions}
+                  style={{ height: "100%", width: width ? width : "0" }}
+                />
+              )}
             </div>
             <div
               style={{
@@ -116,6 +177,7 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
                   width: "40vw",
                   height: "40vw",
                 }}
+                disabled={isLoading}
               >
                 {listening ? (
                   <div
@@ -139,7 +201,6 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
             </div>
           </div>
         </Row>
-
         <Row justify="center">
           <TextArea
             value={text}
@@ -149,12 +210,17 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
               backgroundColor: "var(--background)",
               color: "var(--foreground)",
             }}
+            disabled={isLoading}
           />
         </Row>
         <Row></Row>
         <Row justify="end">
           <Space>
-            <Button onClick={resetTextBox} style={{ fontWeight: "bold" }}>
+            <Button
+              onClick={resetTextBox}
+              style={{ fontWeight: "bold" }}
+              disabled={isLoading}
+            >
               Clear
             </Button>
             <Button
@@ -164,6 +230,7 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange }: Props) => {
                 color: "var(--button-primary-foreground)",
                 fontWeight: "bold",
               }}
+              loading={isLoading}
             >
               Submit
             </Button>

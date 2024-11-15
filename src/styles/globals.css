@@ -1,6 +1,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --action-delete: #e74d4d;
   --card-heart: #C41E3A;
   --card-diamond: #0047AB;
   --card-club: #228B22;

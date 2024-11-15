@@ -73,6 +73,7 @@ export const straddleSchema = z.object({
 export type IStraddle = z.infer<typeof straddleSchema>;
 
 export const handHistorySchema = z.object({
+  player_count: z.number(),
   blinds: z.object({
     small_blind: z.number(),
     big_blind: z.number(),

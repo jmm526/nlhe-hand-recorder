@@ -240,3 +240,24 @@ export const convertSuitToShorthand = (suit: ESuit) => {
       throw new Error("Invalid suit");
   }
 };
+
+export const formatActionText = (action: EAction) => {
+  switch (action) {
+    case EAction.FOLD:
+      return "Fold";
+    case EAction.CHECK:
+      return "Check";
+    case EAction.CALL:
+      return "Call";
+    case EAction.BET:
+      return "Bet";
+    case EAction.RAISE:
+      return "Raise";
+    case EAction.POST:
+      return "Post";
+    case EAction.STRADDLE:
+      return "Straddle";
+    default:
+      return action;
+  }
+};

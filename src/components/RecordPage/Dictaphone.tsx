@@ -51,7 +51,7 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange, isLoading }: Props) 
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
   const recorderControls = useVoiceVisualizer();
-  
+
   // TODO: Add realtime circular visualizer using audioData.
   const { stopRecording, isRecordingInProgress, startRecording, audioData } =
     recorderControls;
@@ -173,7 +173,7 @@ const Dictaphone = ({ text, handleSubmit, handleTextChange, isLoading }: Props) 
                 variant="solid"
                 style={{
                   border: "5px solid var(--foreground)",
-                  backgroundColor: "#e74d4d",
+                  backgroundColor: "var(--action-delete)",
                   width: "40vw",
                   height: "40vw",
                 }}

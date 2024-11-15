@@ -200,6 +200,7 @@ export default async function handler(
 
     const fixedHandHistory: IHandHistory = {
       ...validatedHandHistory,
+      player_count: playerCount,
       preflop: fixedPreflopActions,
       flop: {
         actions: fixedFlopActions,

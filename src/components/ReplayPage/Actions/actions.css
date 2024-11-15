@@ -7,10 +7,29 @@
   border-style: solid;
   border-radius: 5px;
   align-items: center;
+  min-height: 65px;
+}
+
+.action-divider {
+  color: var(--background);
+  background-color: var(--foreground);
+  border-color: var(--background);
+  border-width: 1px;
+  padding: 10px;
+  border-style: solid;
+  border-radius: 5px;
+  align-items: center;
+  min-height: 65px;
+}
+
+.action-divider-text {
+  color: var(--background);
+  font-weight: bold;
+  font-size: 1.4rem;
 }
 
 .action-card-text {
   color: var(--foreground);
   font-weight: bold;
-  font-size: 1.4rem;
+  font-size: 1rem;
 }

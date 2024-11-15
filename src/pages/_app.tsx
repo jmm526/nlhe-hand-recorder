@@ -2,8 +2,12 @@ import "@/styles/globals.css";
 import "regenerator-runtime/runtime";
 import type { AppProps } from "next/app";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
-import { useTransition, animated, useIsomorphicLayoutEffect } from "react-spring";
+import { useEffect, useState } from "react";
+import {
+  useTransition,
+  animated,
+  useIsomorphicLayoutEffect,
+} from "react-spring";
 import localFont from "next/font/local";
 import { Segmented } from "antd";
 import styles from "@/styles/Home.module.css";
@@ -27,11 +31,22 @@ export default function App({ Component, pageProps }: AppProps) {
   const [componentArray, setComponentArray] = useState([
     <Component key={pathname} {...pageProps} />,
   ]);
+  const [segmentedValue, setSegmentedValue] = useState("Record");
 
   const transitions = useTransition(componentArray, {
-    from: { opacity: 0, transform: "translate3d(100%,0,0)" },
+    from: {
+      opacity: 0,
+      transform: `translate3d(${
+        segmentedValue === "Record" ? "-120%" : "120%"
+      },0,0)`,
+    },
     enter: { opacity: 1, transform: "translate3d(0%,0,0)" },
-    leave: { opacity: 0, transform: "translate3d(-50%,0,0)" },
+    leave: {
+      opacity: 0,
+      transform: `translate3d(${
+        segmentedValue === "Record" ? "120%" : "-120%"
+      },0,0)`,
+    },
   });
 
   useIsomorphicLayoutEffect(() => {
@@ -41,23 +56,23 @@ export default function App({ Component, pageProps }: AppProps) {
     setComponentArray([<Component key={pathname} {...pageProps} />]);
   }, [Component, pageProps, router, componentArray]);
 
-  const handleSegmentChange = (value: string) => {
-    if (value === "Record") {
+  useEffect(() => {
+    if (segmentedValue === "Record") {
       router.push("/record");
-    } else if (value === "Replay") {
+    } else if (segmentedValue === "Replay") {
       router.push("/replay");
     }
-  };
+  }, [segmentedValue, router]);
 
   return (
     <div
       className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}
     >
       <main className={styles.main}>
-          <Segmented
-            options={["Record", "Replay"]}
-            onChange={handleSegmentChange}
-            block={true}
+        <Segmented
+          options={["Record", "Replay"]}
+          onChange={setSegmentedValue}
+          block={true}
           value={pathname === "/record" ? "Record" : "Replay"}
           style={{ width: "100%", marginBottom: "20px" }}
         />

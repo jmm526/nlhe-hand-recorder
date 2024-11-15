@@ -56,7 +56,7 @@ const RecordPageContainer = () => {
   };
 
   return (
-    <>
+    <div style={{ position: "absolute", width: "100%" }}>
       {contextHolder}
       <Space direction="vertical" size="small" style={{ width: "100%" }}>
         <ManualInputs
@@ -79,7 +79,7 @@ const RecordPageContainer = () => {
         responseData={responseData}
         onClose={handleCloseHandHistoryModal}
       />
-    </>
+    </div>
   );
 };
 

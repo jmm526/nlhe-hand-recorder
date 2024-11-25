@@ -1,6 +1,6 @@
 import PlayingCard from "@/components/general/PlayingCard/PlayingCard";
 import { EPosition, ICard } from "@/server/models";
-import { Col, Row, Space, Typography } from "antd";
+import { Col, Row, Space, Tag, Typography } from "antd";
 import "./actions.css";
 
 export enum EActionDividerType {
@@ -24,10 +24,19 @@ const ActionDivider = ({ label, cards, potSize, players }: Props) => {
     <Row className="action-divider">
       <Col span={24}>
         <Row>
-          <Col span={cards ? 12 : 24} style={{ display: "flex", alignItems: "center" }}>
-            <Typography.Text strong className="action-divider-text">
-              {label} {potSize ? `(${potSize})` : ""}
-            </Typography.Text>
+          <Col span={cards ? 12 : 24}>
+            <Row style={{ width: "100%" }}>
+              <Typography.Text strong className="action-divider-title-text">
+                {label} {potSize ? `(${potSize})` : ""}
+              </Typography.Text>
+            </Row>
+            <Row style={{ width: "100%" }}>
+              {players?.map((player) => (
+                <Tag key={player} className="action-divider-player-tag">
+                  {player}
+                </Tag>
+              ))}
+            </Row>
           </Col>
           {cards && (
             <Col
@@ -36,7 +45,7 @@ const ActionDivider = ({ label, cards, potSize, players }: Props) => {
             >
               <Space>
                 {cards?.map((card) => (
-                  <PlayingCard card={card} />
+                  <PlayingCard key={`${card.value}${card.suit}`} card={card} />
                 ))}
               </Space>
             </Col>

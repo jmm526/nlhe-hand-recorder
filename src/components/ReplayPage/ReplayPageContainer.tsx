@@ -1,4 +1,3 @@
-import TableContainer from "./Table/TableContainer";
 import ActionsContainer from "./Actions/ActionsContainer";
 import useWindowDimensions from "../general/useWindowDimensions";
 

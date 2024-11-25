@@ -22,10 +22,15 @@
   min-height: 65px;
 }
 
-.action-divider-text {
+.action-divider-title-text {
   color: var(--background);
   font-weight: bold;
   font-size: 1.4rem;
+}
+
+.action-divider-player-tag {
+  font-weight: bold;
+  font-size: .8rem;
 }
 
 .action-card-text {

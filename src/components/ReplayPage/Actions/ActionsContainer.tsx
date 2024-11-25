@@ -295,8 +295,6 @@ const ActionsContainer = () => {
     },
   });
 
-  console.log("state: ", state);
-
   // Todo: useReducer
   const [components, setComponents] = useState<IComponents>({
     [EStreet.PREFLOP]: {
@@ -457,8 +455,6 @@ const ActionsContainer = () => {
       [EStreet.RIVER]: river,
       [EStreet.SHOWDOWN]: showdown,
     } = state;
-
-    console.log("preflop: ", preflop);
 
     // Preflop
     setComponents({

@@ -4,6 +4,7 @@ import { HandHistoryContext } from "@/context/HandHistoryContext";
 import { EAction, EPosition, ICard, IHandHistory } from "@/server/models";
 import Action from "./Action";
 import { positionOrder6max, positionOrder9max } from "@/server/helpers";
+import { Row } from "antd";
 
 enum EStreet {
   PREFLOP = "Preflop",
@@ -259,7 +260,6 @@ const ActionsContainer = () => {
   // const handHistoryContext = useContext(HandHistoryContext);
   // const { handHistory } = handHistoryContext;
 
-  // const [componentArray, setComponentArray] = useState<React.ReactNode[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [state, setState] = useState<IState>({
     [EStreet.PREFLOP]: {
@@ -320,23 +320,6 @@ const ActionsContainer = () => {
       actions: [],
     },
   });
-  // const [potTotals, setPotTotals] = useState<IPotTotals>({
-  //   flop: 0,
-  //   turn: 0,
-  //   river: 0,
-  //   showdown: 0,
-  // });
-
-  // const [players, setPlayers] = useState<IPlayers>({
-  //   flop: [],
-  //   turn: [],
-  //   river: [],
-  //   showdown: [],
-  // });
-
-  // const updateComponents = (street: EStreet) => {
-  //   const { actions, potSize, players } = state[street];
-  // }
 
   const getNextStreetData = (
     actions: IAction[],

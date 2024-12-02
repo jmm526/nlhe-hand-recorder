@@ -1,18 +1,9 @@
 import ActionDivider, { IAction, EActionDividerType } from "./ActionDivider";
 import { useContext, useEffect, useState } from "react";
 import { HandHistoryContext } from "@/context/HandHistoryContext";
-import { EAction, EPosition, ICard, IHandHistory } from "@/server/models";
+import { EAction, EPosition, EStreet, ICard, IHandHistory } from "@/server/models";
 import Action from "./Action";
 import { positionOrder6max, positionOrder9max } from "@/server/helpers";
-import { Row } from "antd";
-
-enum EStreet {
-  PREFLOP = "Preflop",
-  FLOP = "Flop",
-  TURN = "Turn",
-  RIVER = "River",
-  SHOWDOWN = "Showdown",
-}
 
 interface IStreetData {
   actions: IAction[];
@@ -53,212 +44,9 @@ interface IComponents {
   };
 }
 
-const handHistory: IHandHistory = {
-  player_count: 9,
-  blinds: {
-    small_blind: 2,
-    big_blind: 5,
-    straddle: {
-      value: 10,
-      position: "UTG",
-    },
-  },
-  player: {
-    hand: [
-      {
-        suit: "SPADE",
-        value: "A",
-      },
-      {
-        suit: "HEART",
-        value: "K",
-      },
-    ],
-    stack_size: 500,
-    position: "UTG",
-  },
-  preflop: [
-    {
-      position: "SB",
-      action: "POST",
-      amount: 2,
-      stack_size: 498,
-    },
-    {
-      position: "BB",
-      action: "POST",
-      amount: 5,
-      stack_size: 495,
-    },
-    {
-      position: "UTG",
-      action: "STRADDLE",
-      amount: 10,
-      stack_size: 990,
-    },
-    {
-      position: "UTG1",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "UTG2",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "LJ",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "HJ",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "CO",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "BTN",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "SB",
-      action: "FOLD",
-      amount: 0,
-      stack_size: 500,
-    },
-    {
-      position: "BB",
-      action: "CALL",
-      amount: 10,
-      stack_size: 490,
-    },
-    {
-      position: "UTG",
-      action: "RAISE",
-      amount: 45,
-      stack_size: 955,
-    },
-    {
-      position: "BB",
-      action: "CALL",
-      amount: 45,
-      stack_size: 455,
-    },
-  ],
-  flop: {
-    actions: [
-      {
-        position: "BB",
-        action: "CHECK",
-        amount: 0,
-        stack_size: 455,
-      },
-      {
-        position: "UTG",
-        action: "BET",
-        amount: 35,
-        stack_size: 920,
-      },
-      {
-        position: "BB",
-        action: "CALL",
-        amount: 35,
-        stack_size: 420,
-      },
-    ],
-    flop: [
-      {
-        suit: "SPADE",
-        value: "8",
-      },
-      {
-        suit: "HEART",
-        value: "3",
-      },
-      {
-        suit: "DIAMOND",
-        value: "3",
-      },
-    ],
-  },
-  turn: {
-    actions: [
-      {
-        position: "BB",
-        action: "CHECK",
-        amount: 0,
-        stack_size: 420,
-      },
-      {
-        position: "UTG",
-        action: "CHECK",
-        amount: 0,
-        stack_size: 920,
-      },
-    ],
-    card: {
-      suit: "DIAMOND",
-      value: "2",
-    },
-  },
-  river: {
-    actions: [
-      {
-        position: "BB",
-        action: "BET",
-        amount: 35,
-        stack_size: 385,
-      },
-      {
-        position: "UTG",
-        action: "RAISE",
-        amount: 145,
-        stack_size: 775,
-      },
-      {
-        position: "BB",
-        action: "FOLD",
-        amount: 0,
-        stack_size: 420,
-      },
-    ],
-    card: {
-      suit: "HEART",
-      value: "J",
-    },
-  },
-  showdown: [
-    {
-      position: "BB",
-      hand: [
-        {
-          suit: "HEART",
-          value: "K",
-        },
-        {
-          suit: "HEART",
-          value: "2",
-        },
-      ],
-    },
-  ],
-};
-
 const ActionsContainer = () => {
-  // const handHistoryContext = useContext(HandHistoryContext);
-  // const { handHistory } = handHistoryContext;
+  const handHistoryContext = useContext(HandHistoryContext);
+  const { handHistory, setHandHistory } = handHistoryContext;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [state, setState] = useState<IState>({
@@ -266,7 +54,7 @@ const ActionsContainer = () => {
       actions: [],
       potSize: 0,
       players:
-        handHistory.player_count === 9 ? positionOrder9max : positionOrder6max,
+        handHistory?.player_count === 9 ? positionOrder9max : positionOrder6max,
       error: null,
     },
     [EStreet.FLOP]: {
@@ -295,7 +83,7 @@ const ActionsContainer = () => {
     },
   });
 
-  // Todo: useReducer
+  // TODO: useReducer
   const [components, setComponents] = useState<IComponents>({
     [EStreet.PREFLOP]: {
       divider: null,
@@ -344,19 +132,56 @@ const ActionsContainer = () => {
     };
   };
 
+  // TODO: getStreetErrors
   const getStreetErrors = (streetData: IStreetData): string[] | null => {
     return null;
   };
+
+  const handleActionCreateUp = (street: EStreet, index: number) => {
+    const { actions } = state[street];
+    const newActions = [...actions];
+    newActions.splice(index, 0, {
+      position: actions[index].position,
+      action: EAction.FOLD,
+      amount: 0,
+    });
+    return () => {
+      console.log("handleActionCreateUp", street, index);
+      setHandHistory({
+        ...handHistory,
+        [street]: street === EStreet.PREFLOP ? newActions : { ...state[street], actions: newActions },
+      });
+    };
+  };
+
+  const handleActionCreateDown = (street: EStreet, index: number) => {
+    const { actions } = state[street];
+    const newActions = [...actions];
+    newActions.splice(index + 1, 0, {
+      position: actions[index].position,
+      action: EAction.FOLD,
+      amount: 0,
+    });
+    return () => {
+      setHandHistory({
+        ...handHistory,
+        [street]: street === EStreet.PREFLOP ? newActions : { ...state[street], actions: newActions },
+      });
+    };
+  };
+
+  console.log("handHistory: ", handHistory);
+  console.log("state: ", state);
 
   // Set State Data on handhistory change (in context)
   useEffect(() => {
     setIsLoading(true);
     if (handHistory) {
-      const { preflop, flop, turn, river } = handHistory;
+    console.log("USE EFFECT handHistory: ", handHistory);
 
       // Preflop
       const preflopStreetData: IStreetData = {
-        actions: preflop,
+        actions: handHistory.Preflop,
         potSize: 0,
         players:
           handHistory.player_count === 9
@@ -366,54 +191,54 @@ const ActionsContainer = () => {
       };
       const preflopErrors = getStreetErrors(preflopStreetData);
       const { potSize: flopPotSize, players: flopPlayers } = getNextStreetData(
-        preflop,
+        handHistory.Preflop,
         preflopStreetData.players,
         0
       );
 
       // Flop
       const flopStreetData: IStreetData = {
-        actions: flop.actions,
+        actions: handHistory.Flop.actions,
         potSize: flopPotSize,
         players: flopPlayers,
-        cards: flop.flop,
+        cards: handHistory.Flop.flop,
         error: null,
       };
       const flopErrors = getStreetErrors(flopStreetData);
       const { potSize: turnPotSize, players: turnPlayers } = getNextStreetData(
-        flop.actions,
+        handHistory.Flop.actions,
         flopStreetData.players,
         flopStreetData.potSize
       );
 
       // Turn
       const turnStreetData: IStreetData = {
-        actions: turn?.actions || [],
+        actions: handHistory?.Turn?.actions || [],
         potSize: turnPotSize,
         players: turnPlayers,
-        cards: turn?.card ? [turn.card] : [],
+        cards: handHistory?.Turn?.card ? [handHistory.Turn.card] : [],
         error: null,
       };
       const turnErrors = getStreetErrors(turnStreetData);
       const { potSize: riverPotSize, players: riverPlayers } =
         getNextStreetData(
-          turn?.actions || [],
+          handHistory?.Turn?.actions || [],
           turnStreetData.players,
           turnStreetData.potSize
         );
 
       // River
       const riverStreetData: IStreetData = {
-        actions: river?.actions || [],
+        actions: handHistory?.River?.actions || [],
         potSize: riverPotSize,
         players: riverPlayers,
-        cards: river?.card ? [river.card] : [],
+        cards: handHistory?.River?.card ? [handHistory.River.card] : [],
         error: null,
       };
       const riverErrors = getStreetErrors(riverStreetData);
       const { potSize: showdownPotSize, players: showdownPlayers } =
         getNextStreetData(
-          river?.actions || [],
+          handHistory?.River?.actions || [],
           riverStreetData.players,
           riverStreetData.potSize
         );
@@ -460,10 +285,12 @@ const ActionsContainer = () => {
     setComponents({
       [EStreet.PREFLOP]: {
         divider: <ActionDivider label={EActionDividerType.PREFLOP} />,
-        actions: preflop.actions.map((action: IAction) => (
+        actions: preflop.actions.map((action: IAction, index: number) => (
           <Action
             key={`pf-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            onActionCreateUp={handleActionCreateUp(EStreet.PREFLOP, index)}
+            onActionCreateDown={handleActionCreateDown(EStreet.PREFLOP, index)}
             onActionEdit={() => {}}
             onActionDelete={() => {}}
           />
@@ -478,10 +305,12 @@ const ActionsContainer = () => {
             players={flop.players}
           />
         ),
-        actions: flop.actions.map((action: IAction) => (
+        actions: flop.actions.map((action: IAction, index: number) => (
           <Action
             key={`flop-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            onActionCreateUp={handleActionCreateUp(EStreet.FLOP, index)}
+            onActionCreateDown={handleActionCreateDown(EStreet.FLOP, index)}
             onActionEdit={() => {}}
             onActionDelete={() => {}}
           />
@@ -496,10 +325,12 @@ const ActionsContainer = () => {
             players={turn.players}
           />
         ),
-        actions: turn.actions.map((action: IAction) => (
+        actions: turn.actions.map((action: IAction, index: number) => (
           <Action
             key={`turn-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            onActionCreateUp={handleActionCreateUp(EStreet.TURN, index)}
+            onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
             onActionEdit={() => {}}
             onActionDelete={() => {}}
           />
@@ -514,10 +345,12 @@ const ActionsContainer = () => {
             players={river.players}
           />
         ),
-        actions: river.actions.map((action: IAction) => (
+        actions: river.actions.map((action: IAction, index: number) => (
           <Action
             key={`river-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            onActionCreateUp={handleActionCreateUp(EStreet.RIVER, index)}
+            onActionCreateDown={handleActionCreateDown(EStreet.RIVER, index)}
             onActionEdit={() => {}}
             onActionDelete={() => {}}
           />

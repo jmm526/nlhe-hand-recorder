@@ -60,14 +60,20 @@ const Action = ({
                       <Button
                         icon={<><PlusOutlined /><ArrowUpOutlined /></>}
                       className="action-card-button"
-                      onClick={() => onActionCreateUp()}
+                      onClick={() => {
+                        toggleOpen(false);
+                        onActionCreateUp();
+                      }}
                     />
                     </Row>
                     <Row style={{ borderTop: "1px solid var(--foreground)", display: "flex", justifyContent: "center" }}>
                       <Button
                         icon={<><PlusOutlined /><ArrowDownOutlined /></>}
                         className="action-card-button"
-                        onClick={() => onActionCreateDown()}
+                        onClick={() => {
+                          toggleOpen(false);
+                          onActionCreateDown();
+                        }}
                       />
                     </Row>
                   </animated.div>
@@ -85,7 +91,10 @@ const Action = ({
                     <Button
                       icon={<EditOutlined />}
                       className="action-card-button"
-                      onClick={() => onActionEdit(action)}
+                      onClick={() => {
+                        toggleOpen(false);
+                        onActionEdit(action);
+                      }}
                     />
                   </animated.div>
                 )
@@ -102,7 +111,10 @@ const Action = ({
                     <Button
                       icon={<DeleteOutlined />}
                       className="action-card-button"
-                      onClick={() => onActionDelete(action)}
+                      onClick={() => {
+                        toggleOpen(false);
+                        onActionDelete(action);
+                      }}
                     />
                   </animated.div>
                 )

@@ -51,6 +51,14 @@ export enum EPosition {
   BTN = "BTN",
 }
 
+export enum EStreet {
+  PREFLOP = "Preflop",
+  FLOP = "Flop",
+  TURN = "Turn",
+  RIVER = "River",
+  SHOWDOWN = "Showdown",
+}
+
 export const stackSizeSchema = z.object({
   name: z.string().optional(),
   position: z.nativeEnum(EPosition),
@@ -84,20 +92,20 @@ export const handHistorySchema = z.object({
     stack_size: z.number(),
     position: z.nativeEnum(EPosition),
   }),
-  preflop: z.array(actionSchema),
-  flop: z.object({
+  [EStreet.PREFLOP]: z.array(actionSchema),
+  [EStreet.FLOP]: z.object({
     flop: z.array(cardSchema).length(3),
     actions: z.array(actionSchema),
   }),
-  turn: z.object({
+  [EStreet.TURN]: z.object({
     card: cardSchema.nullable(),
     actions: z.array(actionSchema),
   }).optional(),
-  river: z.object({
+  [EStreet.RIVER]: z.object({
     card: cardSchema.nullable(),
     actions: z.array(actionSchema),
   }).optional(),
-  showdown: z.array(
+  [EStreet.SHOWDOWN]: z.array(
     z.object({
       position: z.nativeEnum(EPosition),
       hand: z.array(cardSchema).length(2).optional(),

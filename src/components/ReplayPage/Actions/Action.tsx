@@ -1,6 +1,8 @@
 import { formatActionText } from "@/server/helpers";
 import { EAction, IAction } from "@/server/models";
 import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   DeleteOutlined,
   EditOutlined,
   MoreOutlined,
@@ -16,14 +18,16 @@ interface Props {
   action: IAction;
   onActionEdit: (action: IAction) => void;
   onActionDelete: (action: IAction) => void;
-  onActionCreate: () => void;
+  onActionCreateUp: () => void;
+  onActionCreateDown: () => void;
 }
 
 const Action = ({
   action,
   onActionEdit,
   onActionDelete,
-  onActionCreate,
+  onActionCreateUp,
+  onActionCreateDown,
 }: Props) => {
   const [open, toggleOpen] = useState(false);
   const [buttonsContainerRef, { width: buttonsWidth }] = useMeasure();
@@ -51,12 +55,21 @@ const Action = ({
             {buttonIconTransition(
               (style, item) =>
                 item && (
-                  <animated.div style={style}>
-                    <Button
-                      icon={<PlusOutlined />}
+                  <animated.div style={{...style, width: "100%"}}>
+                    <Row style={{ borderBottom: "1px solid var(--foreground)", display: "flex", justifyContent: "center" }}>
+                      <Button
+                        icon={<><PlusOutlined /><ArrowUpOutlined /></>}
                       className="action-card-button"
-                      onClick={() => onActionCreate()}
+                      onClick={() => onActionCreateUp()}
                     />
+                    </Row>
+                    <Row style={{ borderTop: "1px solid var(--foreground)", display: "flex", justifyContent: "center" }}>
+                      <Button
+                        icon={<><PlusOutlined /><ArrowDownOutlined /></>}
+                        className="action-card-button"
+                        onClick={() => onActionCreateDown()}
+                      />
+                    </Row>
                   </animated.div>
                 )
             )}

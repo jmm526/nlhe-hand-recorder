@@ -1,8 +1,14 @@
 import ActionDivider, { IAction, EActionDividerType } from "./ActionDivider";
 import { useContext, useEffect, useState } from "react";
 import { HandHistoryContext } from "@/context/HandHistoryContext";
-import { EAction, EPosition, EStreet, ICard, IHandHistory } from "@/server/models";
-import Action from "./Action";
+import {
+  EAction,
+  EPosition,
+  EStreet,
+  ICard,
+  IHandHistory,
+} from "@/server/models";
+import Action from "./Action/Action";
 import { positionOrder6max, positionOrder9max } from "@/server/helpers";
 
 interface IStreetData {
@@ -149,7 +155,10 @@ const ActionsContainer = () => {
       console.log("handleActionCreateUp", street, index);
       setHandHistory({
         ...handHistory,
-        [street]: street === EStreet.PREFLOP ? newActions : { ...state[street], actions: newActions },
+        [street]:
+          street === EStreet.PREFLOP
+            ? newActions
+            : { ...state[street], actions: newActions },
       });
     };
   };
@@ -165,19 +174,33 @@ const ActionsContainer = () => {
     return () => {
       setHandHistory({
         ...handHistory,
-        [street]: street === EStreet.PREFLOP ? newActions : { ...state[street], actions: newActions },
+        [street]:
+          street === EStreet.PREFLOP
+            ? newActions
+            : { ...state[street], actions: newActions },
       });
     };
   };
 
-  console.log("handHistory: ", handHistory);
-  console.log("state: ", state);
+  const handleActionEdit = (street: EStreet, index: number) => {
+    const newActions = [...state[street].actions];
+    return (action: IAction) => {
+      newActions[index] = action;
+      setHandHistory({
+        ...handHistory,
+        [street]:
+          street === EStreet.PREFLOP
+            ? newActions
+            : { ...state[street], actions: newActions },
+      });
+    };
+  };
 
   // Set State Data on handhistory change (in context)
   useEffect(() => {
     setIsLoading(true);
     if (handHistory) {
-    console.log("USE EFFECT handHistory: ", handHistory);
+      console.log("USE EFFECT handHistory: ", handHistory);
 
       // Preflop
       const preflopStreetData: IStreetData = {
@@ -289,9 +312,11 @@ const ActionsContainer = () => {
           <Action
             key={`pf-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            players={preflop.players}
+            isInEditMode={false}
             onActionCreateUp={handleActionCreateUp(EStreet.PREFLOP, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.PREFLOP, index)}
-            onActionEdit={() => {}}
+            onActionEdit={handleActionEdit(EStreet.PREFLOP, index)}
             onActionDelete={() => {}}
           />
         )),
@@ -309,9 +334,11 @@ const ActionsContainer = () => {
           <Action
             key={`flop-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            players={flop.players}
+            isInEditMode={false}
             onActionCreateUp={handleActionCreateUp(EStreet.FLOP, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.FLOP, index)}
-            onActionEdit={() => {}}
+            onActionEdit={handleActionEdit(EStreet.FLOP, index)}
             onActionDelete={() => {}}
           />
         )),
@@ -329,9 +356,11 @@ const ActionsContainer = () => {
           <Action
             key={`turn-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            players={turn.players}
+            isInEditMode={false}
             onActionCreateUp={handleActionCreateUp(EStreet.TURN, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
-            onActionEdit={() => {}}
+            onActionEdit={handleActionEdit(EStreet.TURN, index)}
             onActionDelete={() => {}}
           />
         )),
@@ -349,9 +378,11 @@ const ActionsContainer = () => {
           <Action
             key={`river-${action.position}-${action.action}-${action.amount}`}
             action={action}
+            players={river.players}
+            isInEditMode={false}
             onActionCreateUp={handleActionCreateUp(EStreet.RIVER, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.RIVER, index)}
-            onActionEdit={() => {}}
+            onActionEdit={handleActionEdit(EStreet.RIVER, index)}
             onActionDelete={() => {}}
           />
         )),

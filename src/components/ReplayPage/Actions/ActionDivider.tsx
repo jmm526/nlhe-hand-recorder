@@ -19,7 +19,6 @@ interface Props {
 }
 
 const ActionDivider = ({ label, cards, potSize, players }: Props) => {
-  console.log("players: ", players);
   return (
     <Row className="action-divider">
       <Col span={24}>

@@ -13,7 +13,7 @@ interface Props {
   players: EPosition[];
   isInEditMode: boolean;
   onActionEdit: (action: IAction) => void;
-  onActionDelete: (action: IAction) => void;
+  onActionDelete: () => void;
   onActionCreateUp: () => void;
   onActionCreateDown: () => void;
 }
@@ -44,7 +44,7 @@ const Action = ({
         buttonsWidth={buttonsWidth}
         onActionCreateUp={onActionCreateUp}
         onActionCreateDown={onActionCreateDown}
-        onActionDelete={() => {}}
+        onActionDelete={onActionDelete}
       />
       <Col
         span={editMode ? 24 : 23}

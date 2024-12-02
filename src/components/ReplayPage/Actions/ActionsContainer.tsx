@@ -196,6 +196,20 @@ const ActionsContainer = () => {
     };
   };
 
+  const handleActionDelete = (street: EStreet, index: number) => {
+    const newActions = [...state[street].actions];
+    newActions.splice(index, 1);
+    return () => {
+      setHandHistory({
+        ...handHistory,
+        [street]:
+          street === EStreet.PREFLOP
+            ? newActions
+            : { ...state[street], actions: newActions },
+      });
+    };
+  };
+
   // Set State Data on handhistory change (in context)
   useEffect(() => {
     setIsLoading(true);
@@ -317,7 +331,7 @@ const ActionsContainer = () => {
             onActionCreateUp={handleActionCreateUp(EStreet.PREFLOP, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.PREFLOP, index)}
             onActionEdit={handleActionEdit(EStreet.PREFLOP, index)}
-            onActionDelete={() => {}}
+            onActionDelete={handleActionDelete(EStreet.PREFLOP, index)}
           />
         )),
       },
@@ -339,7 +353,7 @@ const ActionsContainer = () => {
             onActionCreateUp={handleActionCreateUp(EStreet.FLOP, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.FLOP, index)}
             onActionEdit={handleActionEdit(EStreet.FLOP, index)}
-            onActionDelete={() => {}}
+            onActionDelete={handleActionDelete(EStreet.FLOP, index)}
           />
         )),
       },
@@ -361,7 +375,7 @@ const ActionsContainer = () => {
             onActionCreateUp={handleActionCreateUp(EStreet.TURN, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
             onActionEdit={handleActionEdit(EStreet.TURN, index)}
-            onActionDelete={() => {}}
+            onActionDelete={handleActionDelete(EStreet.TURN, index)}
           />
         )),
       },
@@ -383,7 +397,7 @@ const ActionsContainer = () => {
             onActionCreateUp={handleActionCreateUp(EStreet.RIVER, index)}
             onActionCreateDown={handleActionCreateDown(EStreet.RIVER, index)}
             onActionEdit={handleActionEdit(EStreet.RIVER, index)}
-            onActionDelete={() => {}}
+            onActionDelete={handleActionDelete(EStreet.RIVER, index)}
           />
         )),
       },

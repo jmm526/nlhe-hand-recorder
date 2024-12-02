@@ -1,5 +1,5 @@
 import { Button, Col, Row } from "antd";
-import { CheckOutlined, DeleteOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useTransition } from "react-spring";
 
 import { animated, useSpring } from "react-spring";
@@ -57,7 +57,7 @@ const ActionEditAcceptTrashButtons = ({
                   }}
                 >
                   <Button
-                    icon={<CheckOutlined />}
+                    icon={<CheckCircleOutlined />}
                     className="action-card-button"
                   />
                 </Col>
@@ -75,7 +75,7 @@ const ActionEditAcceptTrashButtons = ({
                   }}
                 >
                   <Button
-                    icon={<DeleteOutlined />}
+                    icon={<CloseCircleOutlined />}
                     className="action-card-button"
                   />
                 </Col>

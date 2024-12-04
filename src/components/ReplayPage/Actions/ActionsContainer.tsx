@@ -463,8 +463,8 @@ const ActionsContainer = () => {
       {components[EStreet.TURN].actions}
       {components[EStreet.RIVER].divider}
       {components[EStreet.RIVER].actions}
-      {components[EStreet.SHOWDOWN].divider}
-      {components[EStreet.SHOWDOWN].actions}
+      {/* {components[EStreet.SHOWDOWN].divider}
+      {components[EStreet.SHOWDOWN].actions} */}
     </>
   );
 };

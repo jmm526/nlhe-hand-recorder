@@ -10,6 +10,7 @@ import { Modal } from "antd";
 import CopyToClipboardButton from "../general/CopyToClipboardButton";
 
 interface Props {
+  isOpen: boolean;
   responseData: IHandHistory | null;
   onClose: () => void;
 }
@@ -51,7 +52,7 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
   if (!handHistory) {
     return "";
   }
-  const { blinds, player, preflop, flop, turn, river } = handHistory;
+  const { blinds, player, Preflop: preflop, Flop: flop, Turn: turn, River: river } = handHistory;
   let retString = "";
 
   retString += `Blinds: ${blinds.small_blind} / ${blinds.big_blind}\n`;
@@ -86,12 +87,15 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
   return retString;
 };
 
-const HandHistoryModal = ({ responseData, onClose }: Props) => {
+const HandHistoryModal = ({ isOpen, responseData, onClose }: Props) => {
+  if (!responseData) {
+    return null;
+  }
   const handHistoryText = convertHandHistoryToText(responseData);
   return (
     <>
       <Modal
-        open={!!responseData}
+        open={isOpen}
         title="Hand History"
         footer={<CopyToClipboardButton text={handHistoryText} />}
         onCancel={onClose}

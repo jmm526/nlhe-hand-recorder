@@ -32,7 +32,6 @@ const ActionEditAcceptTrashButtons = ({
       style={{
         ...buttonProps,
         marginTop: "10px",
-        marginBottom: "10px",
         width: "100%",
       }}
     >

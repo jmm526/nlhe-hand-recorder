@@ -5,7 +5,7 @@ import { IStackSizeState } from "./ManualInputs/StackSizesContainer";
 import { useContext, useState } from "react";
 import axios from "axios";
 import { IHandHistory } from "@/server/models";
-import HandHistoryModal from "./HandHistoryModal";
+import HandHistoryModal from "../ReplayPage/HandHistoryModal";
 import { HandHistoryContext } from "@/context/HandHistoryContext";
 
 export interface GenerateHandInfoState {
@@ -229,8 +229,6 @@ const RecordPageContainer = () => {
   });
 
   const { setHandHistory } = useContext(HandHistoryContext);
-
-  const [responseData, setResponseData] = useState<IHandHistory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -248,16 +246,11 @@ const RecordPageContainer = () => {
       });
       setIsLoading(false);
       setHandHistory(response.data.handHistory);
-      setResponseData(response.data.handHistory);
     } catch (error) {
       setIsLoading(false);
       messageApi.error("Error generating hand history.");
       console.error(error);
     }
-  };
-
-  const handleCloseHandHistoryModal = () => {
-    setResponseData(null);
   };
 
   return (
@@ -280,10 +273,6 @@ const RecordPageContainer = () => {
           isLoading={isLoading}
         />
       </Space>
-      <HandHistoryModal
-        responseData={responseData}
-        onClose={handleCloseHandHistoryModal}
-      />
     </div>
   );
 };

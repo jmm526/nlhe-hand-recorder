@@ -1,16 +1,10 @@
-import ActionDivider, { IAction, EActionDividerType } from "./ActionDivider";
-import { useContext, useEffect, useState } from "react";
 import { HandHistoryContext } from "@/context/HandHistoryContext";
-import {
-  EAction,
-  EPosition,
-  EStreet,
-  ICard,
-  IHandHistory,
-} from "@/server/models";
-import Action from "./Action/Action";
 import { positionOrder6max, positionOrder9max } from "@/server/helpers";
+import { EAction, EPosition, EStreet, IAction, ICard } from "@/server/models";
+import { useContext, useEffect, useState } from "react";
+import Action from "./Action/Action";
 import NewActionButton from "./Action/NewActionButton";
+import ActionDivider, { EActionDividerType } from "./ActionDivider";
 
 interface IStreetData {
   actions: IAction[];
@@ -385,13 +379,13 @@ const ActionsContainer = () => {
           ? turn.actions.map((action: IAction, index: number) => (
               <Action
                 key={`turn-${action.position}-${action.action}-${action.amount}`}
-            action={action}
-            players={turn.players}
-            isInEditMode={false}
-            onActionCreateUp={handleActionCreateUp(EStreet.TURN, index)}
-            onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
-            onActionEdit={handleActionEdit(EStreet.TURN, index)}
-            onActionDelete={handleActionDelete(EStreet.TURN, index)}
+                action={action}
+                players={turn.players}
+                isInEditMode={false}
+                onActionCreateUp={handleActionCreateUp(EStreet.TURN, index)}
+                onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
+                onActionEdit={handleActionEdit(EStreet.TURN, index)}
+                onActionDelete={handleActionDelete(EStreet.TURN, index)}
               />
             ))
           : [
@@ -414,13 +408,16 @@ const ActionsContainer = () => {
           ? river.actions.map((action: IAction, index: number) => (
               <Action
                 key={`river-${action.position}-${action.action}-${action.amount}`}
-            action={action}
-            players={river.players}
-            isInEditMode={false}
-            onActionCreateUp={handleActionCreateUp(EStreet.RIVER, index)}
-            onActionCreateDown={handleActionCreateDown(EStreet.RIVER, index)}
-            onActionEdit={handleActionEdit(EStreet.RIVER, index)}
-            onActionDelete={handleActionDelete(EStreet.RIVER, index)}
+                action={action}
+                players={river.players}
+                isInEditMode={false}
+                onActionCreateUp={handleActionCreateUp(EStreet.RIVER, index)}
+                onActionCreateDown={handleActionCreateDown(
+                  EStreet.RIVER,
+                  index
+                )}
+                onActionEdit={handleActionEdit(EStreet.RIVER, index)}
+                onActionDelete={handleActionDelete(EStreet.RIVER, index)}
               />
             ))
           : [

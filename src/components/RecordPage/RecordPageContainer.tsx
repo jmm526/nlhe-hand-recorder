@@ -1,13 +1,11 @@
+import { HandHistoryContext } from "@/context/HandHistoryContext";
 import { Space, message } from "antd";
+import axios from "axios";
+import { useRouter } from "next/router";
+import { useContext, useState } from "react";
 import Dictaphone from "./Dictaphone";
 import ManualInputs from "./ManualInputs/ManualInputs";
 import { IStackSizeState } from "./ManualInputs/StackSizesContainer";
-import { useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { IHandHistory } from "@/server/models";
-import HandHistoryModal from "../ReplayPage/HandHistoryModal";
-import { HandHistoryContext } from "@/context/HandHistoryContext";
-import { Router, useRouter } from "next/router";
 
 export interface GenerateHandInfoState {
   smallBlind?: number;

@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
-import { Input, Button, Row, Space } from "antd";
-import { FaMicrophone } from "react-icons/fa";
-import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
-import useWindowDimensions from "../general/useWindowDimensions";
+import { Button, Input, Row, Space } from "antd";
 import {
-  Chart as ChartJS,
+  BarElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
   Title,
   Tooltip,
-  Legend,
-  BarElement,
 } from "chart.js";
+import { useEffect } from "react";
 import { Bar } from "react-chartjs-2";
+import { FaMicrophone } from "react-icons/fa";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { useVoiceVisualizer } from "react-voice-visualizer";
+import useWindowDimensions from "../general/useWindowDimensions";
 
 ChartJS.register(
   CategoryScale,
@@ -42,7 +42,12 @@ interface Props {
   isLoading: boolean;
 }
 
-const Dictaphone = ({ text, handleSubmit, handleTextChange, isLoading }: Props) => {
+const Dictaphone = ({
+  text,
+  handleSubmit,
+  handleTextChange,
+  isLoading,
+}: Props) => {
   const { width } = useWindowDimensions();
   const {
     transcript,

@@ -2,9 +2,9 @@ import { formatActionText } from "@/server/helpers";
 import { EAction, EPosition, IAction } from "@/server/models";
 import { MoreOutlined } from "@ant-design/icons";
 import { Button, Col, InputNumber, Row, Select, Typography } from "antd";
-import "../actions.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useMeasure from "react-use-measure";
+import "../actions.css";
 import ActionCreateEditDeleteButtons from "./ActionCreateEditDeleteButtons";
 import ActionEditAcceptTrashButtons from "./ActionEditAcceptTrashButtons";
 
@@ -30,7 +30,7 @@ const Action = ({
   const [open, toggleOpen] = useState(false);
   const [stateAction, setStateAction] = useState<IAction>(action);
   const [editMode, toggleEditMode] = useState(isInEditMode || false);
-  
+
   const [buttonsContainerRef, { width: buttonsWidth }] = useMeasure();
   const [actionCardRef, { height: actionCardHeight }] = useMeasure();
 

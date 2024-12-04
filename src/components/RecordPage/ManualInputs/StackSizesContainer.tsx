@@ -1,7 +1,6 @@
+import { EPosition } from "@/server/models";
 import { Button, Col, Row, Space, Typography } from "antd";
 import StackSize from "./StackSize";
-import { EPosition } from "@/server/models";
-import { useState } from "react";
 
 interface Props {
   playerCount: number;

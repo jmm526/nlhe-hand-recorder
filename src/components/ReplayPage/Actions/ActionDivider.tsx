@@ -3,7 +3,7 @@ import { HandHistoryContext } from "@/context/HandHistoryContext";
 import { EPosition, ICard } from "@/server/models";
 import { Col, Row, Space, Tag, Typography } from "antd";
 import { useContext, useState } from "react";
-import "./actions.css";
+import styles from "./actions.module.css";
 import SelectCardModal from "./SelectCardModal";
 
 export enum EActionDividerType {
@@ -44,18 +44,18 @@ const ActionDivider = ({ label, cards, potSize, players }: Props) => {
   };
 
   return (
-    <Row className="action-divider">
+    <Row className={styles["action-divider"]}>
       <Col span={24}>
         <Row>
           <Col span={cards ? 12 : 24}>
             <Row style={{ width: "100%" }}>
-              <Typography.Text strong className="action-divider-title-text">
+              <Typography.Text strong className={styles["action-divider-title-text"]}>
                 {label} {potSize ? `(${potSize})` : ""}
               </Typography.Text>
             </Row>
             <Row style={{ width: "100%" }}>
               {players?.map((player) => (
-                <Tag key={player} className="action-divider-player-tag">
+                <Tag key={player} className={styles["action-divider-player-tag"]}>
                   {player}
                 </Tag>
               ))}

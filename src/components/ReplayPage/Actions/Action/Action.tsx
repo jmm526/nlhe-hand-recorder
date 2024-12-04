@@ -4,7 +4,7 @@ import { MoreOutlined } from "@ant-design/icons";
 import { Button, Col, InputNumber, Row, Select, Typography } from "antd";
 import { useState } from "react";
 import useMeasure from "react-use-measure";
-import "../actions.css";
+import styles from "../actions.module.css";
 import ActionCreateEditDeleteButtons from "./ActionCreateEditDeleteButtons";
 import ActionEditAcceptTrashButtons from "./ActionEditAcceptTrashButtons";
 
@@ -35,7 +35,7 @@ const Action = ({
   const [actionCardRef, { height: actionCardHeight }] = useMeasure();
 
   return (
-    <Row className="action-card" ref={actionCardRef}>
+    <Row className={styles["action-card"]} ref={actionCardRef}>
       <ActionCreateEditDeleteButtons
         isOpen={open}
         toggleOpen={toggleOpen}
@@ -49,7 +49,7 @@ const Action = ({
       <Col
         span={editMode ? 24 : 23}
         ref={buttonsContainerRef}
-        className="action-options-not-filled"
+        className={styles["action-options-not-filled"]}
       >
         <Row style={{ height: "100%" }}>
           {editMode ? (
@@ -84,7 +84,7 @@ const Action = ({
             </Col>
           ) : (
             <Col span={10} style={{ display: "flex", alignItems: "center" }}>
-              <Typography.Text strong className="action-card-text">
+              <Typography.Text strong className={styles["action-card-text"]}>
                 {action.position} ({action.stack_size})
               </Typography.Text>
             </Col>
@@ -119,7 +119,7 @@ const Action = ({
             </Col>
           ) : (
             <Col span={8} style={{ display: "flex", alignItems: "center" }}>
-              <Typography.Text strong className="action-card-text">
+              <Typography.Text strong className={styles["action-card-text"]}>
                 {formatActionText(action.action)}
               </Typography.Text>
             </Col>
@@ -149,7 +149,7 @@ const Action = ({
             </Col>
           ) : (
             <Col span={6} style={{ display: "flex", alignItems: "center" }}>
-              <Typography.Text strong className="action-card-text">
+              <Typography.Text strong className={styles["action-card-text"]}>
                 {action.amount}
               </Typography.Text>
             </Col>
@@ -174,7 +174,7 @@ const Action = ({
           }}
         >
           <Button
-            className="action-card-button"
+            className={styles["action-card-button"]}
             onClick={() => toggleOpen(!open)}
             style={{
               backgroundColor: "transparent",

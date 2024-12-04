@@ -1,5 +1,4 @@
 import { useSpring, useTransition, animated } from "react-spring";
-import "../actions.css";
 import { Button, Col } from "antd";
 import { Row } from "antd";
 import {
@@ -9,6 +8,7 @@ import {
   EditOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import styles from "../actions.module.css";
 
 interface Props {
   isOpen: boolean;
@@ -41,7 +41,7 @@ const ActionCreateEditDeleteButtons = ({
   });
   return (
     <animated.div
-      className="action-options-fill"
+      className={styles["action-options-fill"]}
       style={{ ...buttonsProps, height: actionCardHeight }}
     >
       <Row style={{ height: "100%" }}>
@@ -73,7 +73,7 @@ const ActionCreateEditDeleteButtons = ({
                           <ArrowUpOutlined />
                         </>
                       }
-                      className="action-card-button"
+                      className={styles["action-card-button"]}
                       onClick={() => {
                         toggleOpen(false);
                         onActionCreateUp();
@@ -94,7 +94,7 @@ const ActionCreateEditDeleteButtons = ({
                           <ArrowDownOutlined />
                         </>
                       }
-                      className="action-card-button"
+                      className={styles["action-card-button"]}
                       onClick={() => {
                         toggleOpen(false);
                         onActionCreateDown();
@@ -121,7 +121,7 @@ const ActionCreateEditDeleteButtons = ({
                 <animated.div style={style}>
                   <Button
                     icon={<EditOutlined />}
-                    className="action-card-button"
+                    className={styles["action-card-button"]}
                     onClick={() => {
                       toggleOpen(false);
                       toggleEditMode(true);
@@ -147,7 +147,7 @@ const ActionCreateEditDeleteButtons = ({
                 <animated.div style={style}>
                   <Button
                     icon={<DeleteOutlined />}
-                    className="action-card-button"
+                    className={styles["action-card-button"]}
                     onClick={() => {
                       toggleOpen(false);
                       onActionDelete();

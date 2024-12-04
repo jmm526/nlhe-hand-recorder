@@ -10,6 +10,7 @@ import {
 } from "@/server/models";
 import Action from "./Action/Action";
 import { positionOrder6max, positionOrder9max } from "@/server/helpers";
+import NewActionButton from "./Action/NewActionButton";
 
 interface IStreetData {
   actions: IAction[];
@@ -147,12 +148,11 @@ const ActionsContainer = () => {
     const { actions } = state[street];
     const newActions = [...actions];
     newActions.splice(index, 0, {
-      position: actions[index].position,
+      position: actions[index]?.position || EPosition.BTN,
       action: EAction.FOLD,
       amount: 0,
     });
     return () => {
-      console.log("handleActionCreateUp", street, index);
       setHandHistory({
         ...handHistory,
         [street]:
@@ -210,12 +210,13 @@ const ActionsContainer = () => {
     };
   };
 
+  console.log("state: ", state);
+  console.log("handHistory: ", handHistory);
+
   // Set State Data on handhistory change (in context)
   useEffect(() => {
     setIsLoading(true);
     if (handHistory) {
-      console.log("USE EFFECT handHistory: ", handHistory);
-
       // Preflop
       const preflopStreetData: IStreetData = {
         actions: handHistory.Preflop,
@@ -322,18 +323,28 @@ const ActionsContainer = () => {
     setComponents({
       [EStreet.PREFLOP]: {
         divider: <ActionDivider label={EActionDividerType.PREFLOP} />,
-        actions: preflop.actions.map((action: IAction, index: number) => (
-          <Action
-            key={`pf-${action.position}-${action.action}-${action.amount}`}
-            action={action}
-            players={preflop.players}
-            isInEditMode={false}
-            onActionCreateUp={handleActionCreateUp(EStreet.PREFLOP, index)}
-            onActionCreateDown={handleActionCreateDown(EStreet.PREFLOP, index)}
-            onActionEdit={handleActionEdit(EStreet.PREFLOP, index)}
-            onActionDelete={handleActionDelete(EStreet.PREFLOP, index)}
-          />
-        )),
+        actions: preflop.actions.length
+          ? preflop.actions.map((action: IAction, index: number) => (
+              <Action
+                key={`pf-${action.position}-${action.action}-${action.amount}`}
+                action={action}
+                players={preflop.players}
+                isInEditMode={false}
+                onActionCreateUp={handleActionCreateUp(EStreet.PREFLOP, index)}
+                onActionCreateDown={handleActionCreateDown(
+                  EStreet.PREFLOP,
+                  index
+                )}
+                onActionEdit={handleActionEdit(EStreet.PREFLOP, index)}
+                onActionDelete={handleActionDelete(EStreet.PREFLOP, index)}
+              />
+            ))
+          : [
+              <NewActionButton
+                key="new-action-button-pf"
+                onActionCreate={handleActionCreateUp(EStreet.PREFLOP, 0)}
+              />,
+            ],
       },
       [EStreet.FLOP]: {
         divider: (
@@ -344,18 +355,25 @@ const ActionsContainer = () => {
             players={flop.players}
           />
         ),
-        actions: flop.actions.map((action: IAction, index: number) => (
-          <Action
-            key={`flop-${action.position}-${action.action}-${action.amount}`}
-            action={action}
-            players={flop.players}
-            isInEditMode={false}
-            onActionCreateUp={handleActionCreateUp(EStreet.FLOP, index)}
-            onActionCreateDown={handleActionCreateDown(EStreet.FLOP, index)}
-            onActionEdit={handleActionEdit(EStreet.FLOP, index)}
-            onActionDelete={handleActionDelete(EStreet.FLOP, index)}
-          />
-        )),
+        actions: flop.actions.length
+          ? flop.actions.map((action: IAction, index: number) => (
+              <Action
+                key={`flop-${action.position}-${action.action}-${action.amount}`}
+                action={action}
+                players={flop.players}
+                isInEditMode={false}
+                onActionCreateUp={handleActionCreateUp(EStreet.FLOP, index)}
+                onActionCreateDown={handleActionCreateDown(EStreet.FLOP, index)}
+                onActionEdit={handleActionEdit(EStreet.FLOP, index)}
+                onActionDelete={handleActionDelete(EStreet.FLOP, index)}
+              />
+            ))
+          : [
+              <NewActionButton
+                key="new-action-button-flop"
+                onActionCreate={handleActionCreateUp(EStreet.FLOP, 0)}
+              />,
+            ],
       },
       [EStreet.TURN]: {
         divider: (
@@ -366,9 +384,10 @@ const ActionsContainer = () => {
             players={turn.players}
           />
         ),
-        actions: turn.actions.map((action: IAction, index: number) => (
-          <Action
-            key={`turn-${action.position}-${action.action}-${action.amount}`}
+        actions: turn.actions.length
+          ? turn.actions.map((action: IAction, index: number) => (
+              <Action
+                key={`turn-${action.position}-${action.action}-${action.amount}`}
             action={action}
             players={turn.players}
             isInEditMode={false}
@@ -376,8 +395,14 @@ const ActionsContainer = () => {
             onActionCreateDown={handleActionCreateDown(EStreet.TURN, index)}
             onActionEdit={handleActionEdit(EStreet.TURN, index)}
             onActionDelete={handleActionDelete(EStreet.TURN, index)}
-          />
-        )),
+              />
+            ))
+          : [
+              <NewActionButton
+                key="new-action-button-turn"
+                onActionCreate={handleActionCreateUp(EStreet.TURN, 0)}
+              />,
+            ],
       },
       [EStreet.RIVER]: {
         divider: (
@@ -388,9 +413,10 @@ const ActionsContainer = () => {
             players={river.players}
           />
         ),
-        actions: river.actions.map((action: IAction, index: number) => (
-          <Action
-            key={`river-${action.position}-${action.action}-${action.amount}`}
+        actions: river.actions.length
+          ? river.actions.map((action: IAction, index: number) => (
+              <Action
+                key={`river-${action.position}-${action.action}-${action.amount}`}
             action={action}
             players={river.players}
             isInEditMode={false}
@@ -398,8 +424,14 @@ const ActionsContainer = () => {
             onActionCreateDown={handleActionCreateDown(EStreet.RIVER, index)}
             onActionEdit={handleActionEdit(EStreet.RIVER, index)}
             onActionDelete={handleActionDelete(EStreet.RIVER, index)}
-          />
-        )),
+              />
+            ))
+          : [
+              <NewActionButton
+                key="new-action-button-river"
+                onActionCreate={handleActionCreateUp(EStreet.RIVER, 0)}
+              />,
+            ],
       },
       [EStreet.SHOWDOWN]: {
         divider: (

@@ -137,8 +137,8 @@ const Action = ({
                   Amount
                 </Typography.Text>
               </Row>
-              {action.action !== EAction.CHECK &&
-                action.action !== EAction.FOLD && (
+              {stateAction.action !== EAction.CHECK &&
+                stateAction.action !== EAction.FOLD && (
                   <InputNumber
                     value={stateAction.amount}
                     onChange={(value) =>

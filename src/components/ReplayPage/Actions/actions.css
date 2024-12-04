@@ -12,6 +12,17 @@
   position: relative;
 }
 
+.action-card-new {
+  color: var(--foreground);
+  background-color: var(--background);
+  border-color: var(--foreground);
+  border-width: 1px;
+  padding: 10px;
+  border-style: solid;
+  border-radius: 5px;
+  align-items: center;
+}
+
 .action-divider {
   color: var(--background);
   background-color: var(--foreground);

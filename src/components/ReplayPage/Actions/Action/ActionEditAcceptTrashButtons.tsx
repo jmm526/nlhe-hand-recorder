@@ -17,7 +17,6 @@ const ActionEditAcceptTrashButtons = ({
   toggleEditMode,
   onAccept,
 }: Props) => {
-  console.log("height", height);
   const buttonProps = useSpring({
     // height: isEditMode ? height : 0,
     maxHeight: isEditMode ? height : 0,

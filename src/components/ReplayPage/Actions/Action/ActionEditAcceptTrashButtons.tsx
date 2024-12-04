@@ -1,6 +1,7 @@
 import { Button, Col, Row } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useTransition } from "react-spring";
+import styles from "../actions.module.css";
 
 import { animated, useSpring } from "react-spring";
 
@@ -56,7 +57,7 @@ const ActionEditAcceptTrashButtons = ({
                 >
                   <Button
                     icon={<CheckCircleOutlined />}
-                    className="action-card-button"
+                    className={styles["action-card-button"]}
                   />
                 </Col>
                 <Col
@@ -74,7 +75,7 @@ const ActionEditAcceptTrashButtons = ({
                 >
                   <Button
                     icon={<CloseCircleOutlined />}
-                    className="action-card-button"
+                    className={styles["action-card-button"]}
                   />
                 </Col>
               </Row>

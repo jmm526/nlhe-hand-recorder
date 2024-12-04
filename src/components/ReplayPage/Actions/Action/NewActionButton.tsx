@@ -1,4 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
+import styles from "../actions.module.css";
 
 import { Col, Row } from "antd";
 
@@ -8,7 +9,7 @@ interface Props {
 
 const NewActionButton = ({ onActionCreate }: Props) => {
   return (
-    <Row className="action-card-new">
+    <Row className={styles["action-card-new"]}>
       <Col
         span={24}
         style={{

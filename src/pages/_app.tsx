@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import "regenerator-runtime/runtime";
 import type { AppProps } from "next/app";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   useTransition,
   animated,
@@ -11,7 +11,7 @@ import {
 import localFont from "next/font/local";
 import { Segmented } from "antd";
 import styles from "@/styles/Home.module.css";
-import { HandHistoryProvider } from "@/context/HandHistoryContext";
+import { HandHistoryContext, HandHistoryProvider } from "@/context/HandHistoryContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,10 +28,20 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const { setHandHistory } = useContext(HandHistoryContext);
+
   const [componentArray, setComponentArray] = useState([
     <Component key={pathname} {...pageProps} />,
   ]);
   const [segmentedValue, setSegmentedValue] = useState("Record");
+
+  const handleSegmentedChange = (value: string) => {
+    if (value === "Record") {
+      setHandHistory(null);
+      router.push("/record");
+    }
+    setSegmentedValue(value);
+  };
 
   const transitions = useTransition(componentArray, {
     from: {
@@ -71,7 +81,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <main className={styles.main}>
         <Segmented
           options={["Record", "Replay"]}
-          onChange={setSegmentedValue}
+          onChange={handleSegmentedChange}
           block={true}
           value={pathname === "/record" ? "Record" : "Replay"}
           style={{ width: "100%", marginBottom: "20px" }}

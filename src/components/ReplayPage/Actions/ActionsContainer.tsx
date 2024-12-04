@@ -210,9 +210,6 @@ const ActionsContainer = () => {
     };
   };
 
-  console.log("state: ", state);
-  console.log("handHistory: ", handHistory);
-
   // Set State Data on handhistory change (in context)
   useEffect(() => {
     setIsLoading(true);

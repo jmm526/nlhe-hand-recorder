@@ -34,7 +34,6 @@ const getSuitIcon = (suit: ESuit) => {
 };
 
 const PlayingCard = ({ card }: Props) => {
-  const color = getColor(card.suit);
   return (
     <div
       style={{
@@ -43,6 +42,7 @@ const PlayingCard = ({ card }: Props) => {
         padding: "5px",
         backgroundColor: getColor(card.suit),
         color: "var(--foreground)",
+        cursor: "pointer",
       }}
     >
       <Row>

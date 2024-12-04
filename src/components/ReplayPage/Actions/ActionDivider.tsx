@@ -1,7 +1,10 @@
 import PlayingCard from "@/components/general/PlayingCard/PlayingCard";
-import { EPosition, ICard } from "@/server/models";
+import { EPosition, ICard, IHandHistory } from "@/server/models";
 import { Col, Row, Space, Tag, Typography } from "antd";
 import "./actions.css";
+import SelectCardModal from "./SelectCardModal";
+import { useContext, useState } from "react";
+import { HandHistoryContext } from "@/context/HandHistoryContext";
 
 export enum EActionDividerType {
   PREFLOP = "Preflop",
@@ -18,7 +21,28 @@ interface Props {
   players?: EPosition[];
 }
 
+interface ISelectedCard {
+  card: ICard;
+  street: EActionDividerType;
+  index: number;
+}
+
 const ActionDivider = ({ label, cards, potSize, players }: Props) => {
+  const [selectedCard, setSelectedCard] = useState<ISelectedCard | null>(null);
+  const { handHistory, setHandHistory } = useContext(HandHistoryContext);
+
+  const handleSave = (selectedCardInfo: ISelectedCard) => {
+    return (newCard: ICard) => {
+      const newHandHistory = { ...handHistory };
+      if (selectedCardInfo.street === EActionDividerType.FLOP) {
+        newHandHistory.Flop.flop[selectedCardInfo.index] = newCard;
+      } else {
+        newHandHistory[selectedCardInfo.street].card = newCard;
+      }
+      setHandHistory(newHandHistory);
+    };
+  };
+
   return (
     <Row className="action-divider">
       <Col span={24}>
@@ -43,14 +67,32 @@ const ActionDivider = ({ label, cards, potSize, players }: Props) => {
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               <Space>
-                {cards?.map((card) => (
-                  <PlayingCard key={`${card.value}${card.suit}`} card={card} />
+                {cards?.map((card, index) => (
+                  <div
+                    onClick={() =>
+                      setSelectedCard({
+                        card: card as ICard,
+                        street: label,
+                        index,
+                      })
+                    }
+                  >
+                    <PlayingCard
+                      key={`${card.value}${card.suit}`}
+                      card={card}
+                    />
+                  </div>
                 ))}
               </Space>
             </Col>
           )}
         </Row>
       </Col>
+      <SelectCardModal
+        card={selectedCard?.card || null}
+        onSave={handleSave(selectedCard)}
+        onClose={() => setSelectedCard(null)}
+      />
     </Row>
   );
 };

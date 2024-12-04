@@ -16,6 +16,7 @@ const ReplayPageContainer = () => {
   return (
     <div
       style={{
+        position: "absolute",
         display: "flex",
         flexDirection: "column",
         width: "100%",

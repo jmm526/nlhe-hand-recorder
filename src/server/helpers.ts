@@ -198,7 +198,6 @@ export const fixActions = (
           addAction(currentPlayer, nextGptAction.action, nextGptAction.amount);
           gptActions.shift();
         } else {
-          console.log(">>>", nextGptAction);
           throw new Error("Invalid action");
         }
       } else {

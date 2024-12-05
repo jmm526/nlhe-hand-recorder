@@ -56,7 +56,7 @@ const convertHandHistoryToText = (handHistory: IHandHistory | null) => {
   let retString = "";
 
   retString += `Blinds: ${blinds.small_blind} / ${blinds.big_blind}\n`;
-  retString += `Hero: [${player.hand[0].value}${convertSuitToShorthand(
+  retString += `Hero (${player.position}): [${player.hand[0].value}${convertSuitToShorthand(
     player.hand[0].suit
   )}, ${player.hand[1].value}${convertSuitToShorthand(player.hand[1].suit)}]\n`;
 

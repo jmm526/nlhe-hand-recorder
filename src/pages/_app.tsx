@@ -1,17 +1,21 @@
+import {
+  HandHistoryContext,
+  HandHistoryProvider,
+} from "@/context/HandHistoryContext";
+import { RecordPageProvider } from "@/context/RecordPageContext";
 import "@/styles/globals.css";
-import "regenerator-runtime/runtime";
+import styles from "@/styles/Home.module.css";
+import { Segmented } from "antd";
 import type { AppProps } from "next/app";
-import { useRouter, usePathname } from "next/navigation";
+import localFont from "next/font/local";
+import { usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import {
-  useTransition,
   animated,
   useIsomorphicLayoutEffect,
+  useTransition,
 } from "react-spring";
-import localFont from "next/font/local";
-import { Segmented } from "antd";
-import styles from "@/styles/Home.module.css";
-import { HandHistoryContext, HandHistoryProvider } from "@/context/HandHistoryContext";
+import "regenerator-runtime/runtime";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -87,11 +91,13 @@ export default function App({ Component, pageProps }: AppProps) {
           style={{ width: "100%", marginBottom: "20px" }}
         />
         <HandHistoryProvider>
-          {transitions((style, item) => (
-            <animated.div style={{ ...style, width: "100%" }}>
-              {item}
-            </animated.div>
-          ))}
+          <RecordPageProvider>
+            {transitions((style, item) => (
+              <animated.div style={{ ...style, width: "100%" }}>
+                {item}
+              </animated.div>
+            ))}
+          </RecordPageProvider>
         </HandHistoryProvider>
       </main>
     </div>

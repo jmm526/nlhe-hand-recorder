@@ -5,15 +5,7 @@ import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import Dictaphone from "./Dictaphone";
 import ManualInputs from "./ManualInputs/ManualInputs";
-import { IStackSizeState } from "./ManualInputs/StackSizesContainer";
-
-export interface GenerateHandInfoState {
-  smallBlind?: number;
-  bigBlind?: number;
-  playerCount?: number;
-  stackSizes?: IStackSizeState[];
-  rawHistory?: string;
-}
+import { RecordPageContext, RecordPageContextProps } from "@/context/RecordPageContext";
 
 // const handHistory: IHandHistory = {
 //   player_count: 9,
@@ -219,13 +211,7 @@ export interface GenerateHandInfoState {
 // };
 
 const RecordPageContainer = () => {
-  const [handInfo, setHandInfo] = useState<GenerateHandInfoState>({
-    smallBlind: 2,
-    bigBlind: 5,
-    playerCount: 9,
-    stackSizes: [{ name: "Hero", stackSize: 1000 }],
-    rawHistory: "",
-  });
+  const { recordPageInfo, setRecordPageInfo } = useContext(RecordPageContext);
 
   const router = useRouter();
 
@@ -233,15 +219,15 @@ const RecordPageContainer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
-  const handleInfoChange = (key: keyof GenerateHandInfoState, value: any) => {
-    setHandInfo({ ...handInfo, [key]: value });
+  const handleInfoChange = (key: keyof RecordPageContextProps, value: any) => {
+    setRecordPageInfo({ ...recordPageInfo, [key]: value });
   };
 
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
       const response = await axios.post("/api/ai/generate-hand-history", {
-        ...handInfo,
+        ...recordPageInfo,
       });
       setIsLoading(false);
       setHandHistory(response.data.handHistory);
@@ -258,14 +244,14 @@ const RecordPageContainer = () => {
       {contextHolder}
       <Space direction="vertical" size="small" style={{ width: "100%" }}>
         <ManualInputs
-          smallBlind={handInfo.smallBlind}
-          bigBlind={handInfo.bigBlind}
-          playerCount={handInfo.playerCount}
-          stackSizes={handInfo.stackSizes}
+          smallBlind={recordPageInfo?.smallBlind}
+          bigBlind={recordPageInfo?.bigBlind}
+          playerCount={recordPageInfo?.playerCount}
+          stackSizes={recordPageInfo?.stackSizes}
           handleInfoChange={handleInfoChange}
         />
         <Dictaphone
-          text={handInfo.rawHistory as string}
+          text={recordPageInfo?.rawHistory as string}
           handleTextChange={(text: string) => {
             handleInfoChange("rawHistory", text);
           }}

@@ -15,6 +15,8 @@ const gptInstructions = `
 
   If the prompt refers to a "limp", this should be treated as a call of the big blind or straddle.
 
+  If the prompt refers to a "jam", this should be treated as a "BET" if no other "BET"'s have occurred on that street, or a "RAISE" if there has been a "BET" on that street. The size of this action should be the size of the stack of the player who is jamming.
+
   The prompt will always include the following information in JSON format:
 
   interface IGptPromptInfo {

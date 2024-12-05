@@ -1,5 +1,5 @@
+import { RecordPageContextProps } from "@/context/RecordPageContext";
 import { Col, InputNumber, Row, Select, Typography } from "antd";
-import { GenerateHandInfoState } from "../RecordPageContainer";
 import StackSizesContainer, { IStackSizeState } from "./StackSizesContainer";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   bigBlind?: number;
   playerCount?: number;
   stackSizes?: IStackSizeState[];
-  handleInfoChange: (key: keyof GenerateHandInfoState, value: any) => void;
+  handleInfoChange: (key: keyof RecordPageContextProps, value: any) => void;
 }
 
 const ManualInputs = ({

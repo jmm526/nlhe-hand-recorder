@@ -179,6 +179,8 @@ const ActionsContainer = () => {
   const handleActionEdit = (street: EStreet, index: number) => {
     const newActions = [...state[street].actions];
     return (action: IAction) => {
+      const oldAction = newActions[index];
+      action.stack_size = oldAction.stack_size + (oldAction.amount || 0) - (action.amount || 0)
       newActions[index] = action;
       setHandHistory({
         ...handHistory,

@@ -152,7 +152,7 @@ const ActionsContainer = () => {
         [street]:
           street === EStreet.PREFLOP
             ? newActions
-            : { ...state[street], actions: newActions },
+            : { ...handHistory[street], actions: newActions },
       });
     };
   };
@@ -171,7 +171,7 @@ const ActionsContainer = () => {
         [street]:
           street === EStreet.PREFLOP
             ? newActions
-            : { ...state[street], actions: newActions },
+            : { ...handHistory[street], actions: newActions },
       });
     };
   };
@@ -187,7 +187,7 @@ const ActionsContainer = () => {
         [street]:
           street === EStreet.PREFLOP
             ? newActions
-            : { ...state[street], actions: newActions },
+            : { ...handHistory[street], actions: newActions },
       });
     };
   };
@@ -201,7 +201,7 @@ const ActionsContainer = () => {
         [street]:
           street === EStreet.PREFLOP
             ? newActions
-            : { ...state[street], actions: newActions },
+            : { ...handHistory[street], actions: newActions },
       });
     };
   };
@@ -312,7 +312,6 @@ const ActionsContainer = () => {
       [EStreet.SHOWDOWN]: showdown,
     } = state;
 
-    // Preflop
     setComponents({
       [EStreet.PREFLOP]: {
         divider: <ActionDivider label={EActionDividerType.PREFLOP} />,

@@ -130,9 +130,10 @@ export const fixActions = (
         if (!amount) {
           throw new Error("Amount is required for bet or raise");
         }
-        if (amount <= currentBetSize) {
-          throw new Error("Invalid bet size");
-        }
+        // TODO: fix this for all-in
+        // if (amount <= currentBetSize) {
+        //   throw new Error("Invalid bet size");
+        // }
         currentAggressor = position;
         currentBetSize = amount;
         playersActed = [position];

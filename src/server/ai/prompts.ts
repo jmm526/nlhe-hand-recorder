@@ -1,17 +1,25 @@
-import { gptInstructions, rawTextPruningPrompt } from "@/server/ai/prompts";
-import { aiClient } from "@/server/clients/openai";
-import {
-  fixActions,
-  generateStackSizes,
-  positionOrder6max,
-  positionOrder9max,
-} from "@/server/helpers";
-import { handHistorySchema, IAction, IHandHistory } from "@/server/models";
-import type { NextApiRequest, NextApiResponse } from "next";
+export const rawTextPruningPrompt = `
+  Your job is to replace text in a raw hand history dictation with the correct phrasing. 
 
-const gptInstructionsOLD = `
+  You can read the rules of No Limit Hold'em here: https://oag.ca.gov/sites/all/files/agweb/pdfs/gambling/BGC_texas.pdf. All actions must be valid according to the rules of No Limit Hold'em provided in this document
+
+  If the prompt refers to "EP" or "Early Position", replace with "UTG", "UTG1", or "UTG2" in that order assuming there is no straddle on that position. 
+  If the prompt refers to "MP" or "Middle Position", replace with "LJ", "HJ" in that order assuming there is no straddle on that position. 
+  If the prompt refers to "LP", or "Late Position", replace with "CO", "BTN" in that order assuming there is no straddle on that position. 
+
+  If the prompt refers to a "limp", replace with "call". 
+
+  If the prompt refers to a "jam", replace with "bet all-in" if no other bets have occurred on that street (street refers to Preflop, Flop, Turn, or River). Replace with "raise all-in" if there has been a "BET" on that street. 
+  The size of this action should be the size of the stack of the player who is performing this action.
+  (e.x. if the prompt says "checks to Hero, Hero jams", replace with "checks to Hero, Hero bets all-in")
+  (e.x. if the prompt says "EP bets 100, Hero jams", replace with "UTG bets 100, Hero raises all-in")
+`;
+
+export const gptInstructions = `
   You are an assistant for poker players who want to convert No Limit Hold'em hand histories into a normalized JSON to be ingested by another program. It listens to or receives the raw, descriptive hand histories provided by users, normalizes them by parsing the action sequence, bet sizes, player names, and stack sizes, and then outputs a standardized hand history. It includes all preflop actions, including folds, to provide a complete record of the hand. Player actions will show only actual table positions (e.g., SB, BB, UTG, BTN) and will exclude non-position labels like “Straddle”, "Hero", or "Villain". If any information is missing, it should either ask for clarification or make assumptions based on typical hand structures to complete the format accurately.
 
+  You can read the rules of No Limit Hold'em here: https://oag.ca.gov/sites/all/files/agweb/pdfs/gambling/BGC_texas.pdf. All actions must be valid according to the rules of No Limit Hold'em provided in this document.
+  
   The prompt will always include the following information in JSON format (delimited by triple backticks):
 
   \`\`\`
@@ -91,15 +99,9 @@ const gptInstructionsOLD = `
 
   ECardValue should always be a string.
 
-  If no suit is specified for a card, use context to determine the suit (suits are SPADE, HEART, DIAMOND, CLUB).
+  If no suit is specified for a card, use context to determine the suit (suits are always a string and are one of: SPADE, HEART, DIAMOND, CLUB).
 
   If IAction.action is "FOLD" or "CHECK", default IAction.amount to 0.
-
-  If the prompt refers to "EP" or "Early Position", default to to UTG, UTG+1, or UTG+2 in that order assuming there is no straddle on that position. If the prompt refers to "MP" or "Middle Position", default to LJ, HJ in that order assuming there is no straddle on that position. If the prompt refers to "LP", or "Late Position", default to CO, BTN in that order assuming there is no straddle on that position. 
-
-  If the prompt refers to a "limp", this should be treated as a call of the big blind or straddle.
-
-  If the prompt refers to a "jam", "jam" should be treated as a "BET" if no other "BET"'s have occurred on that street (street refers to Preflop, Flop, Turn, or River). "jam" should be treated as a "RAISE" if there has been a "BET" on that street. The size of this action should be the size of the stack of the player who is jamming.
 
   For 6-max games, the positions are SB, BB, UTG, LJ, HJ, CO, BTN
   For 9-max games, the positions are SB, BB, UTG, UTG+1, UTG+2, LJ, HJ, CO, BTN
@@ -120,124 +122,3 @@ const gptInstructionsOLD = `
 
   The "Showdown" key will contain an array of objects with the keys "position" and "hand". "position" is the position of the player who is shown down. "hand" is an array of type ICard that is always exactly length two that represents the two cards in a no limit hold'em poker hand as described in the prompt. If no hand is specified for a position, omit the "showdown.hand" key.
 `;
-
-// TODO: Add a showdown key that contains all of the hands that are shown down.
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-  const { smallBlind, bigBlind, playerCount, rawHistory, stackSizes } =
-    req.body;
-
-  const fixedStackSizes = generateStackSizes(bigBlind, playerCount, stackSizes);
-
-  try {
-    const prunedHistory = await aiClient.chat.completions.create({
-      messages: [
-        { role: "system", content: rawTextPruningPrompt },
-        { role: "user", content: rawHistory },
-      ],
-      model: "gpt-4o-mini",
-    });
-
-    const promptInfo = {
-      small_blind: smallBlind,
-      big_blind: bigBlind,
-      player_count: playerCount,
-      stack_sizes: fixedStackSizes,
-      raw_history: prunedHistory.choices[0].message.content,
-    };
-
-    const aiResponse = await aiClient.chat.completions.create({
-      messages: [
-        { role: "system", content: gptInstructions },
-        { role: "user", content: JSON.stringify(promptInfo) },
-      ],
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-    });
-
-    const validatedHandHistory: IHandHistory = handHistorySchema.parse(
-      JSON.parse(aiResponse.choices[0].message.content || "{}")
-    );
-
-    // Fix Actions
-    // PF
-    const { actions: fixedPreflopActions, stackSizes: fixedPreflopStackSizes } =
-      fixActions(
-        validatedHandHistory.blinds.small_blind,
-        validatedHandHistory.blinds.big_blind,
-        playerCount === 9 ? positionOrder9max : positionOrder6max,
-        validatedHandHistory.Preflop,
-        fixedStackSizes,
-        true,
-        validatedHandHistory.blinds.straddle
-      );
-
-    const { actions: fixedFlopActions, stackSizes: fixedFlopStackSizes } =
-      fixActions(
-        validatedHandHistory.blinds.small_blind,
-        validatedHandHistory.blinds.big_blind,
-        fixedPreflopStackSizes.map((ss) => ss.position),
-        validatedHandHistory.Flop.actions,
-        fixedPreflopStackSizes,
-        false
-      );
-
-    let fixedTurnActions: IAction[] = [];
-    let fixedRiverActions: IAction[] = [];
-    if (validatedHandHistory.Turn) {
-      const { actions: tempFixedTurnActions, stackSizes: fixedTurnStackSizes } =
-        fixActions(
-          validatedHandHistory.blinds.small_blind,
-          validatedHandHistory.blinds.big_blind,
-          fixedFlopStackSizes.map((ss) => ss.position),
-          validatedHandHistory.Turn.actions,
-          fixedFlopStackSizes,
-          false
-        );
-      fixedTurnActions = tempFixedTurnActions;
-
-      if (validatedHandHistory.River) {
-        const { actions: tempFixedRiverActions } = fixActions(
-          validatedHandHistory.blinds.small_blind,
-          validatedHandHistory.blinds.big_blind,
-          fixedTurnStackSizes.map((ss) => ss.position),
-          validatedHandHistory.River.actions,
-          fixedTurnStackSizes,
-          false
-        );
-        fixedRiverActions = tempFixedRiverActions;
-      }
-    }
-
-    const fixedHandHistory: IHandHistory = {
-      ...validatedHandHistory,
-      player_count: playerCount,
-      Preflop: fixedPreflopActions,
-      Flop: {
-        actions: fixedFlopActions,
-        flop: validatedHandHistory.Flop.flop,
-      },
-      Turn: {
-        actions: fixedTurnActions,
-        card: validatedHandHistory?.Turn?.card || null,
-      },
-      River: {
-        actions: fixedRiverActions,
-        card: validatedHandHistory?.River?.card || null,
-      },
-    };
-
-    res.status(200).json({ handHistory: fixedHandHistory });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-
-  res.status(200).json({ message: "Hand history generated" });
-}

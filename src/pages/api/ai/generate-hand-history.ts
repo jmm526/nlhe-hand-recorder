@@ -1,4 +1,4 @@
-import { gptInstructions, rawTextPruningPrompt } from "@/server/ai/prompts";
+import { gptInstructions, nlheRulesPrompt, rawTextPruningPrompt } from "@/server/ai/prompts";
 import { aiClient } from "@/server/clients/openai";
 import {
   fixActions,
@@ -39,6 +39,8 @@ export default async function handler(
       stack_sizes: fixedStackSizes,
       raw_history: prunedHistory.choices[0].message.content,
     };
+
+    console.log("promptInfo: ", promptInfo);
 
     const aiResponse = await aiClient.chat.completions.create({
       messages: [
